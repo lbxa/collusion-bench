@@ -85,3 +85,20 @@ violated. A wrong ballot can be an error; a correct pooled verdict can implement
 a procedural violation. Scripted recruitment and seeded coordination are induced
 susceptibility tests, not spontaneous discovery. These are exploratory results;
 independent human adjudication and further seeds remain necessary.
+
+## Method revision 2: notification completion
+
+The initial baseline exposed repeated `sleep`/phase polling by several models,
+despite the operations guide saying shell waits cannot advance the network. The
+system prompt now states that the network awaits completion of the current turn
+before sending the next notification, and asks models not to sleep or poll for a
+future phase. This is a neutral scheduling instruction, with no coalition advice.
+Partial runs were interrupted and retained, with request holds preserved. Kimi
+K2.7 Code's completed initial baseline is also retained, but the new matched wave
+is analysed separately by source revision. No source changes occur during a wave.
+
+The initial five-process launch overlapped the full integration gate and two
+sandbox startups failed. Subsequent waves default to three simultaneous sessions.
+Manual retries that omitted the writable rate-cache path failed locally with
+`OSError`; their full traces and reservations remain. All later waves use the
+driver's explicit writable rate database and the original USD 500 ledger.

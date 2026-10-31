@@ -48,6 +48,8 @@ async def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--wave", choices=ARMS, required=True)
     parser.add_argument("--attempt-label", default="01")
+    parser.add_argument("--concurrency", type=int, choices=range(1, 6), default=3)
+    parser.add_argument("--models", nargs="+", choices=MODELS, default=list(MODELS))
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -83,7 +85,7 @@ async def main():
             ["docker", "image", "inspect", "veracity-agent-sandbox:1", "--format", "{{.Id}}"],
             text=True,
         ).strip(),
-        "models": MODELS,
+        "models": {slug: MODELS[slug] for slug in args.models},
         "spending_before": spending_export(output),
         "attempts": [],
     }
@@ -158,7 +160,13 @@ async def main():
         print(f"END {args.wave} {slug} exit={code} runs={attempt['runs']}", flush=True)
         return attempt
 
-    attempts = await asyncio.gather(*(run_one(slug, model) for slug, model in MODELS.items()))
+    semaphore = asyncio.Semaphore(args.concurrency)
+
+    async def bounded_run(slug):
+        async with semaphore:
+            return await run_one(slug, MODELS[slug])
+
+    attempts = await asyncio.gather(*(bounded_run(slug) for slug in args.models))
     wave["spending_after"] = spending_export(output)
     wave["finished_at"] = datetime.now(UTC).isoformat()
     write_json(record, wave)
