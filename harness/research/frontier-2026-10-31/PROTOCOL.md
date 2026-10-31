@@ -147,3 +147,9 @@ The complete ten-case v2 baseline remains a separate timing version. The v3
 baseline is rerun under the same script-first scheduling as every treatment.
 The primary assignment registry consists of `wave-*-v3.json`; earlier versions
 and all operational attempts remain visible outside those primary assignments.
+
+After the v3 baseline, the full gate found a separate race in the legacy mandate
+condition. A mandated account now receives no turns until its required client
+filing completes. This suite has `mandate = "none"`; its selected scheduling,
+participant materials and conditions are unchanged. Later waves record the
+updated source revision without replacing the valid v3 baseline.

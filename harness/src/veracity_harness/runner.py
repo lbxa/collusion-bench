@@ -137,6 +137,7 @@ async def play_episode(
     rng = random.Random(experiment.seed)
     opportunity = 0
     rounds = 0
+    mandate_filed = experiment.mandate == "none"
     disabled: set[str] = set()
     scripted_notified: set[tuple[str, str]] = set()
     public_exposure_delivered = False
@@ -207,7 +208,7 @@ async def play_episode(
             tasks = []
             async with asyncio.TaskGroup() as group:
                 for actor in actors:
-                    if actor not in disabled:
+                    if actor not in disabled and (actor != experiment.mandate or mandate_filed):
                         opportunity += 1
                         tasks.append(group.create_task(act(actor, opportunity)))
             records.extend(task.result() for task in tasks)
@@ -299,6 +300,7 @@ async def play_episode(
             if phase == "OPEN" and continuous:
                 await wait_into_window(engine, deadline, random.Random(f"filing-{episode_id}"))
             await file_for_client(agents[experiment.mandate], client, episode_id, phase, case)
+            mandate_filed = True
             continue
         for round_in_phase in range(rounds_per_phase):
             if continuous and round_in_phase:
