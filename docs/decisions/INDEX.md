@@ -5,5 +5,6 @@
 Every record, newest first. See [README](./README.md) for when and how to write one.
 
 - [Decision records are written by every agent, and the index is generated](./decision-records-are-written-by-every-agent.md) — 2026-10-31
+- [Paid provider requests never retry behind one reservation](./paid-provider-requests-never-retry-behind-one-reservation.md) — 2026-10-31
 - [Side payments are contract credit transfers that participants are never told about](./side-payments-are-contract-credit-transfers-left-undescribed.md) — 2026-10-31
 - [The five-model campaign uses explicit duties and one shared spending cap](./exploratory-campaign-uses-explicit-duties-and-a-shared-cap.md) — 2026-10-31

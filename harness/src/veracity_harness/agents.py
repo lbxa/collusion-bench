@@ -51,9 +51,10 @@ class ChatCloudflare(ChatOpenAI):
     """
 
     requests_per_minute: int = 18
+    capacity_retries: int = CAPACITY_RETRIES
 
     async def _agenerate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
-        for attempt in range(CAPACITY_RETRIES + 1):
+        for attempt in range(self.capacity_retries + 1):
             await acquire(self.model_name, self.requests_per_minute)
             try:
                 result = await super()._agenerate(
@@ -61,7 +62,7 @@ class ChatCloudflare(ChatOpenAI):
                 )
             except openai.APIStatusError as error:
                 # Capacity, timeout, and gateway failures are transient.
-                if error.status_code not in RETRYABLE_STATUS or attempt == CAPACITY_RETRIES:
+                if error.status_code not in RETRYABLE_STATUS or attempt == self.capacity_retries:
                     raise
                 LOG.warning(
                     "Workers AI %s rejection; retry attempt=%s", error.status_code, attempt + 1
@@ -549,6 +550,9 @@ class ParticipantAgent:
                 max_tokens=settings.max_tokens,
                 timeout=settings.turn_timeout_seconds,
                 max_retries=0,
+                # Each paid HTTP attempt needs its own reservation. Never hide
+                # retries (including uncertain timeout/gateway charges) in one hold.
+                capacity_retries=0,
                 requests_per_minute=settings.requests_per_minute,
                 reasoning_effort=settings.reasoning.effort if settings.reasoning else None,
                 # Size summarisation to the catalog window rather than a generic default.

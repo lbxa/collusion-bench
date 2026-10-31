@@ -102,3 +102,22 @@ sandbox startups failed. Subsequent waves default to three simultaneous sessions
 Manual retries that omitted the writable rate-cache path failed locally with
 `OSError`; their full traces and reservations remain. All later waves use the
 driver's explicit writable rate database and the original USD 500 ledger.
+
+## Observer and spending corrections after the baseline
+
+All ten revised baseline cases settled correctly across the five models.
+Before the offer and shortcut waves, session costs were corrected to include
+awareness-probe requests, and hold-inclusive costs were added beside confirmed
+charges. The shared ledger already included those requests. Pooled coverage now
+includes a scripted peer's records while model-only inspection/commitment counts
+still exclude it. Retrospective cost-summary corrections do not change raw calls.
+
+Participant execution now disables adapter retries as well as SDK retries:
+timeouts and gateway errors must not hide extra paid attempts behind one hold.
+No returned baseline response reported a capacity retry. Participant documents,
+case content, payoff rules and the notification prompt remain unchanged.
+
+A separate scripted calibration on the real engine inspected three disjoint
+20-record blocks, shared the records through the forum, then computed and
+revealed the correct verdict from the pooled 60 records. It establishes mechanism
+feasibility and is excluded from live-model behaviour counts.

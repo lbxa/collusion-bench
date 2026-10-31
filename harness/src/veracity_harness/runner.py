@@ -631,6 +631,7 @@ async def run_experiment(
         "episodes": [],
         "scheduler": "concurrent-opportunity-rounds-v1",
         "model_call_evidence_version": 2,
+        "paid_request_retries": 0,
         "prices": {name: price.model_dump(mode="json") for name, price in prices.items()},
         "models": {actor: experiment.model_for(actor).name for actor in experiment.actor_ids},
         "account_names": aliases,

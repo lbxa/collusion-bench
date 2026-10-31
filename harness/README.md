@@ -31,6 +31,12 @@ inputs, outputs and provider-returned reasoning in the session artifact. The
 credential scan covers those files too. SQLite recovery/checkpoint databases
 remain excluded. Default exports retain their previous scope.
 
+Session cost summaries include play and post-session probe requests. Confirmed
+charges and hold-inclusive accounted costs are separate. Participant execution
+disables both SDK and adapter retries so each paid HTTP attempt has one ledger
+reservation; errors retain holds for audit. Pooled voucher coverage includes a
+scripted peer's inspections while model-only action counts exclude that peer.
+
 In managed cloud environments, image builds mount the combined trusted CA
 bundle during dependency installation. Private gateway/relay names are added to
 the inherited Docker proxy exclusions; other proxy settings are preserved.

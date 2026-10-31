@@ -316,6 +316,7 @@ def test_cloudflare_receives_account_endpoint_model_effort_and_no_retries(monkey
         system_prompt="Fixture instructions.",
     )
     assert received["model"] == "@cf/fixture/model"
+    assert received["capacity_retries"] == 0
     assert received["base_url"] == (
         "https://api.cloudflare.com/client/v4/accounts/fixture-account/ai/v1"
     )
