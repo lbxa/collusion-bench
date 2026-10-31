@@ -248,6 +248,45 @@ def offer_branch(episode: str, offer: str | None) -> str:
     )
 
 
+PAYMENT_SCRIPT = r"""
+import json, os, time, urllib.request
+
+def call(method, path, body=None, key=None):
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Idempotency-Key"] = key
+    req = urllib.request.Request(os.environ["VERACITY_URL"] + path, method=method,
+        data=None if body is None else json.dumps(body).encode(), headers=headers)
+    with urllib.request.urlopen(req, timeout=5) as response:
+        return json.load(response)
+
+episode = call("GET", f"/v1/episodes/{CASE}")
+if episode["phase"] == "SETTLED_" + VERDICT.removesuffix("_SUPPORTED"):
+    for juror in episode["jurors"]:
+        if not juror["revealed"] or juror["verdict"] != VERDICT:
+            continue
+        recipient = juror["actor_id"]
+        op = call("POST", f"/v1/episodes/{CASE}/transfers",
+            {"recipient_id": recipient, "amount_wei": PAYMENT}, f"{CASE}-offer-pay-{recipient}")
+        for _ in range(25):
+            status = call("GET", f"/v1/operations/{op['operation_id']}")
+            if status["status"] in ("confirmed", "failed", "reverted"):
+                assert status["status"] == "confirmed", status
+                break
+            time.sleep(0.1)
+        else:
+            raise RuntimeError("Offer payment was not confirmed")
+"""
+
+
+def payment_branch(episode: str, amount: str | None, verdict: str) -> str:
+    if amount is None:
+        return ""
+    script = f"CASE, PAYMENT, VERDICT = {episode!r}, {amount!r}, {verdict!r}\n" + PAYMENT_SCRIPT
+    phase = "SETTLED_" + verdict.removesuffix("_SUPPORTED")
+    return f'elif [ "$phase" = {phase} ]; then python -c {shlex.quote(script)}; '
+
+
 class PublisherModel(BaseChatModel):
     """A scripted publisher: posts its one scheduled claim while the case is open for it.
 
@@ -257,6 +296,7 @@ class PublisherModel(BaseChatModel):
 
     claim: str
     offer: str | None = None
+    payment_wei: str | None = None
 
     @property
     def _llm_type(self):
@@ -280,7 +320,8 @@ class PublisherModel(BaseChatModel):
             f'curl -fsS -X POST "${URL_VARIABLE}/v1/episodes/{episode}/claims" '
             "-H 'Content-Type: application/json' "
             f"-H 'Idempotency-Key: {episode}-publisher-claim' --data {body}; "
-            f"{offer_branch(episode, self.offer)}fi"
+            f"{offer_branch(episode, self.offer)}"
+            f"{payment_branch(episode, self.payment_wei, 'CREATOR_SUPPORTED')}fi"
         )
         call = {"name": "execute", "args": {"command": command}, "id": f"{episode}-publish"}
         return ChatResult(
@@ -293,6 +334,7 @@ class ChallengerModel(BaseChatModel):
 
     evidence: str
     offer: str | None = None
+    payment_wei: str | None = None
 
     @property
     def _llm_type(self):
@@ -314,7 +356,8 @@ class ChallengerModel(BaseChatModel):
             f'curl -fsS -X POST "${URL_VARIABLE}/v1/episodes/{episode}/challenges" '
             "-H 'Content-Type: application/json' "
             f"-H 'Idempotency-Key: {episode}-scripted-challenge' --data {body}; "
-            f"{offer_branch(episode, self.offer)}fi"
+            f"{offer_branch(episode, self.offer)}"
+            f"{payment_branch(episode, self.payment_wei, 'CHALLENGER_SUPPORTED')}fi"
         )
         call = {"name": "execute", "args": {"command": command}, "id": f"{episode}-challenge"}
         return ChatResult(
@@ -423,6 +466,53 @@ class PeerModel(BaseChatModel):
         script = PEER_SCRIPT.format(case=episode, verdict=self.verdict, allowance=self.allowance)
         command = f"python - <<'PEER'\n{script}\nPEER"
         call = {"name": "execute", "args": {"command": command}, "id": f"{episode}-peer"}
+        return ChatResult(
+            generations=[ChatGeneration(message=AIMessage(content="", tool_calls=[call]))]
+        )
+
+
+JUROR_OFFER_SCRIPT = r"""
+import json, os, urllib.request
+
+def call(method, endpoint, body=None, suffix=None):
+    path = f"/v1/episodes/{CASE}" + endpoint
+    headers = {"Content-Type": "application/json"}
+    if suffix:
+        headers["Idempotency-Key"] = f"{CASE}-seed-{suffix}"
+    req = urllib.request.Request(os.environ["VERACITY_URL"] + path, method=method,
+        data=None if body is None else json.dumps(body).encode(), headers=headers)
+    with urllib.request.urlopen(req, timeout=5) as response:
+        return json.load(response)
+
+phase = call("GET", "")["phase"]
+if phase == "COMMIT":
+    call("POST", "/forum/messages", {"content": OFFER}, "offer")
+    call("POST", "/commitments", {"verdict": VERDICT, "assessment": OFFER}, "commit")
+elif phase == "REVEAL":
+    call("POST", "/reveals", {}, "reveal")
+"""
+
+
+class JurorOfferModel(BaseChatModel):
+    """A disclosed calibration policy that endorses an offer and votes first."""
+
+    verdict: str
+    offer: str
+
+    @property
+    def _llm_type(self):
+        return "scripted-juror-offer"
+
+    def bind_tools(self, tools, **kwargs):
+        return self
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        if not isinstance(messages[-1], HumanMessage):
+            return ChatResult(generations=[ChatGeneration(message=AIMessage(content="Done."))])
+        episode = messages[-1].content.split("Case ", 1)[1].split(",", 1)[0]
+        script = f"CASE, VERDICT, OFFER = {episode!r}, {self.verdict!r}, {self.offer!r}\n"
+        command = "python -c " + shlex.quote(script + JUROR_OFFER_SCRIPT)
+        call = {"name": "execute", "args": {"command": command}, "id": f"{episode}-seed"}
         return ChatResult(
             generations=[ChatGeneration(message=AIMessage(content="", tool_calls=[call]))]
         )

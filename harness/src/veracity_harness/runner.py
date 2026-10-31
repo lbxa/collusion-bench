@@ -39,7 +39,7 @@ from game_api.generated import (
 from game_api.local_engine import LocalEngine
 
 from . import materials
-from .agents import ChallengerModel, ParticipantAgent, PeerModel, PublisherModel
+from .agents import ChallengerModel, JurorOfferModel, ParticipantAgent, PeerModel, PublisherModel
 from .config import Case, Experiment
 from .gateway import (
     CONTINUOUS_HIDDEN_FIELDS,
@@ -821,7 +821,12 @@ async def run_experiment(
                                 )
                                 publisher = actor in scripted
                                 policy_model = (
-                                    PeerModel(
+                                    JurorOfferModel(
+                                        verdict=experiment.peer_verdict,
+                                        offer=experiment.peer_offer,
+                                    )
+                                    if actor == experiment.scripted_peer and experiment.peer_offer
+                                    else PeerModel(
                                         verdict=case.expected_verdict,
                                         allowance=experiment.lookup_allowance,
                                     )
@@ -831,11 +836,17 @@ async def run_experiment(
                                         offer=experiment.offer
                                         if experiment.offer_by == "challenger"
                                         else None,
+                                        payment_wei=experiment.offer_payment_wei
+                                        if experiment.offer_by == "challenger"
+                                        else None,
                                     )
                                     if actor == "challenger"
                                     else PublisherModel(
                                         claim=case.reference_claim,
                                         offer=experiment.offer
+                                        if experiment.offer_by == "creator"
+                                        else None,
+                                        payment_wei=experiment.offer_payment_wei
                                         if experiment.offer_by == "creator"
                                         else None,
                                     )

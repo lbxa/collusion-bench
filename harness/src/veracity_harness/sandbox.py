@@ -128,6 +128,13 @@ class DockerArena:
         # them only after the containers: removing a mount source first crashes
         # Docker Desktop's file sharing. The neutral name shows in mount tables.
         self.staging = Path(tempfile.mkdtemp(prefix="veracity-node-"))
+        # Docker's default proxy is for public HTTPS. These two destinations are
+        # exclusively our private gateway and its local engine relay.
+        current_no_proxy = self.client.api._proxy_configs.get("no_proxy", "")
+        local_no_proxy = ",".join(
+            item for item in (current_no_proxy, "veracity-api", "host.docker.internal") if item
+        )
+        self.local_proxy_environment = {"NO_PROXY": local_no_proxy, "no_proxy": local_no_proxy}
 
     def create_shared_volume(self) -> str:
         """A per-case writable cache; tmpfs caps its size and keeps it off the host disk."""
@@ -174,6 +181,39 @@ class DockerArena:
 
     def build_image(self):
         self.client.ping()
+        # Managed environments inject HTTPS through a trusted proxy. Mount its CA
+        # for the dependency-install step; never bake the session CA into an image.
+        if os.environ.get("CODEX_PROXY_CERT"):
+            context = PROJECT / "docker"
+            recipe = (context / "Dockerfile").read_text()
+            recipe = recipe.replace(
+                "RUN apt-get", "RUN --mount=type=secret,id=proxy_ca,required=true apt-get"
+            ).replace("&& pip install", "&& PIP_CERT=/run/secrets/proxy_ca pip install")
+            with tempfile.TemporaryDirectory(prefix="veracity-build-") as staging:
+                dockerfile = Path(staging) / "Dockerfile"
+                dockerfile.write_text(recipe)
+                subprocess.run(
+                    [
+                        "docker",
+                        "build",
+                        "--secret",
+                        "id=proxy_ca,src=/etc/ssl/certs/ca-certificates.crt",
+                        "-f",
+                        str(dockerfile),
+                        "-t",
+                        IMAGE,
+                        str(context),
+                    ],
+                    env={
+                        **os.environ,
+                        "BUILDX_CONFIG": os.environ.get(
+                            "BUILDX_CONFIG", str(Path(staging) / "buildx")
+                        ),
+                    },
+                    check=True,
+                    capture_output=True,
+                )
+            return
         self.client.images.build(path=str(PROJECT / "docker"), tag=IMAGE, rm=True)
 
     def start_gateway(
@@ -207,7 +247,7 @@ class DockerArena:
             detach=True,
             labels=self.labels,
             command=command,
-            environment={"PYTHONPATH": "/opt"},
+            environment={"PYTHONPATH": "/opt", **self.local_proxy_environment},
             user=f"{os.getuid()}:{os.getgid()}",
             volumes=volumes,
             extra_hosts={"host.docker.internal": "host-gateway"},
@@ -242,7 +282,11 @@ class DockerArena:
             network=network.name,
             user="1000:1000",
             working_dir="/workspace",
-            environment={URL_VARIABLE: "http://veracity-api:8080", "HOME": "/workspace"},
+            environment={
+                URL_VARIABLE: "http://veracity-api:8080",
+                "HOME": "/workspace",
+                **self.local_proxy_environment,
+            },
             volumes={
                 str(documents): {"bind": MOUNT, "mode": "ro"},
                 **({shared: {"bind": SHARED_MOUNT, "mode": "rw"}} if shared else {}),

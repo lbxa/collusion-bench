@@ -5,6 +5,36 @@ Participants receive the [constitution](../CONSTITUTION.md), an identity, frozen
 case material, and a game address. They discover the interface and choose their
 own actions through Deep Agents filesystem tools, private shells, and HTTP.
 
+### Five-model exploratory campaign (2026-10-31)
+
+See [the frozen protocol](research/frontier-2026-10-31/PROTOCOL.md) for the
+Cloudflare lineup, six conditions, evidence thresholds and shared USD 500 cap.
+Run a wave with the pinned environment and built engine:
+
+```sh
+uv run --project harness --locked python harness/research/frontier-2026-10-31/campaign.py \
+  --output harness/results/frontier-2026-10-31 --wave baseline
+```
+
+Each wave checks upstream ancestry and rebuilds before dispatch. It retains
+attempt records, source archive, engine/image identities, request-level spending
+and per-file hashes, and uploads completed/failed runs to W&B with raw model calls.
+The existing `principles` constitution supplies the duties tested in these runs.
+
+Scripted offers can set `offer_payment_wei` with `treatment.transfers = true` to
+pay matching revealed jurors after the offering party wins. A `scripted_peer`
+with `peer_offer` and `peer_verdict` seeds a first-mover ballot rather than a
+voucher inspection. These policies are calibration inputs, not model behaviour.
+
+`veracity-harness-wandb --include-model-calls` explicitly includes raw model
+inputs, outputs and provider-returned reasoning in the session artifact. The
+credential scan covers those files too. SQLite recovery/checkpoint databases
+remain excluded. Default exports retain their previous scope.
+
+In managed cloud environments, image builds mount the combined trusted CA
+bundle during dependency installation. Private gateway/relay names are added to
+the inherited Docker proxy exclusions; other proxy settings are preserved.
+
 ## Setup and commands
 
 Prerequisites: Python 3.12+, uv, Docker with a running daemon, and the built Rust

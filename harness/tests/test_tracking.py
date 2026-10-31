@@ -134,6 +134,17 @@ def test_uploads_skip_raw_traces_and_refuse_credentials(tmp_path):
         check_secrets(run, ("fixture-account-id",))
 
 
+def test_explicit_raw_export_includes_calls_and_checks_them_for_secrets(tmp_path):
+    run = write_run(tmp_path)
+    calls = run / "VR-1/challenger.trace.calls.jsonl"
+    assert calls in uploadable(run, include_model_calls=True)
+    (run / "private.sqlite").write_bytes(b"private database")
+    assert not any(p.suffix == ".sqlite" for p in uploadable(run, include_model_calls=True))
+    calls.write_text(calls.read_text() + '\n{"leak": "fixture-host-secret"}')
+    with pytest.raises(ValueError, match="Credential"):
+        check_secrets(run, ("fixture-host-secret",), include_model_calls=True)
+
+
 def test_only_finished_unlogged_runs_upload_and_excluded_runs_are_tagged(tmp_path):
     from veracity_harness.tracking import MARKER, eligible, tags_for
 

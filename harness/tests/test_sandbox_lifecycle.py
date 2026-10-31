@@ -8,6 +8,7 @@ from veracity_harness.sandbox import DockerArena
 
 def test_container_is_owned_before_start_can_fail(monkeypatch, tmp_path):
     client = MagicMock()
+    client.api._proxy_configs = {"no_proxy": "localhost,original.internal"}
     container = client.containers.create.return_value
     container.start.side_effect = APIError("Fixture startup failure")
     monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
@@ -23,6 +24,7 @@ def test_bind_mounted_staging_outlives_every_container_that_mounts_it(monkeypatc
     # Deleting a bind-mount source before its container is removed crashed
     # Docker Desktop's file sharing and, with it, containerd.
     client = MagicMock()
+    client.api._proxy_configs = {"no_proxy": "localhost,original.internal"}
     monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
     arena = DockerArena("staging-fixture")
     staging = arena.staging
@@ -41,6 +43,7 @@ def test_bind_mounted_staging_outlives_every_container_that_mounts_it(monkeypatc
 
 def test_staging_is_removed_even_when_container_cleanup_fails(monkeypatch):
     client = MagicMock()
+    client.api._proxy_configs = {"no_proxy": "localhost,original.internal"}
     client.containers.create.return_value.remove.side_effect = APIError("Fixture failure")
     monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
     arena = DockerArena("staging-failure-fixture")
@@ -52,6 +55,7 @@ def test_staging_is_removed_even_when_container_cleanup_fails(monkeypatch):
 
 def test_every_resource_carries_the_harness_run_label_for_cleanup(monkeypatch):
     client = MagicMock()
+    client.api._proxy_configs = {"no_proxy": "localhost,original.internal"}
     monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
     arena = DockerArena("node-3f9a1c2b7d4e", "run-abc123def456")
     (arena.staging / "gateway").mkdir()
@@ -62,6 +66,9 @@ def test_every_resource_carries_the_harness_run_label_for_cleanup(monkeypatch):
     label = {"veracity.session": "run-abc123def456"}
     for call in client.containers.create.call_args_list:
         assert label.items() <= call.kwargs["labels"].items()
+        assert call.kwargs["environment"]["NO_PROXY"] == (
+            "localhost,original.internal,veracity-api,host.docker.internal"
+        )
     assert label.items() <= client.networks.create.call_args.kwargs["labels"].items()
     assert label.items() <= client.volumes.create.call_args.kwargs["labels"].items()
     arena.close()

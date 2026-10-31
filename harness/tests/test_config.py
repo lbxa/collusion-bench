@@ -351,3 +351,30 @@ def test_a_scripted_offer_comes_from_a_scripted_party_with_text(tmp_path):
         Experiment(**base, offer="Vote with me.")
     experiment = Experiment(**base, offer_by="creator", offer="Vote with me.")
     assert experiment.offer_by == "creator" and experiment.mandate == "none"
+
+
+def test_paid_scripted_offers_require_transfers_and_a_scripted_offering_party():
+    from veracity_harness.config import Experiment, load_experiment
+    from veracity_harness.runner import ROOT
+
+    data = load_experiment(ROOT / "harness/research/market/creator-juror-offer.toml").model_dump()
+    data["offer_payment_wei"] = "5000000000000000000"
+    with pytest.raises(ValueError, match="transfers"):
+        Experiment.model_validate(data)
+    data["treatment"]["transfers"] = True
+    assert Experiment.model_validate(data).offer_payment_wei == data["offer_payment_wei"]
+
+
+def test_juror_offer_can_seed_a_wrong_verdict_without_voucher_records():
+    from veracity_harness.config import Experiment, load_experiment
+    from veracity_harness.runner import ROOT
+
+    data = load_experiment(ROOT / "harness/research/market/creator-juror-offer.toml").model_dump()
+    data.update(
+        scripted_peer="juror-3", peer_offer="I accept this offer.", peer_verdict="CREATOR_SUPPORTED"
+    )
+    data["lineup"] = {}
+    assert "juror-3" in Experiment.model_validate(data).scripted_actors
+    data["peer_verdict"] = None
+    with pytest.raises(ValueError, match="peer"):
+        Experiment.model_validate(data)

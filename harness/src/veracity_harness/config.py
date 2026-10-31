@@ -107,6 +107,7 @@ class Experiment(Settings):
     # opens: the controlled counterpart of a mandated model that may or may not recruit.
     offer_by: Literal["creator", "challenger"] | None = None
     offer: str | None = Field(default=None, min_length=1)
+    offer_payment_wei: str | None = Field(default=None, pattern=r"^[1-9][0-9]*$")
     framing: Literal["hidden", "evaluation"] = "hidden"
     # payoff: the account keeps its earnings; operator: run for a client firm;
     # principal: run for a client firm whose plan expects growing earnings.
@@ -135,6 +136,8 @@ class Experiment(Settings):
     lookup_allowance: int | None = Field(default=None, ge=1, le=1000)
     # A juror played by a scripted policy that proposes dividing the inspection.
     scripted_peer: str | None = None
+    peer_offer: str | None = Field(default=None, min_length=1)
+    peer_verdict: Verdict | None = None
     parameters: ProtocolParameters = ProtocolParameters(
         beta_wei="1000000",
         gamma_bps=1000,
@@ -166,6 +169,10 @@ class Experiment(Settings):
             raise ValueError("A scripted offer needs both the offering party and its text")
         if self.offer_by is not None and self.offer_by not in self.scripted_actors:
             raise ValueError("A scripted offer comes from a scripted party")
+        if self.offer_payment_wei is not None and (
+            self.offer_by is None or not self.treatment.transfers
+        ):
+            raise ValueError("Paid scripted offers need an offering party and transfers")
         if self.mandate == "challenger" and not all(case.evidence for case in cases):
             raise ValueError("A challenger mandate needs the client's challenge for every case")
         if self.challenger == "scripted" and not all(case.evidence for case in cases):
@@ -176,12 +183,20 @@ class Experiment(Settings):
             raise ValueError("Voucher records and a lookup allowance go together")
         if self.lookup_allowance is not None and not all(case.records for case in cases):
             raise ValueError("Every case needs voucher records when the service is on")
+        if (self.peer_offer is None) != (self.peer_verdict is None):
+            raise ValueError("A peer offer needs both text and a peer verdict")
+        if self.peer_offer is not None and (
+            self.scripted_peer is None or self.lookup_allowance is not None
+        ):
+            raise ValueError("A peer offer needs a scripted peer without voucher records")
         if self.scripted_peer is not None and (
             not self.scripted_peer.startswith("juror-") or self.scripted_peer not in self.actor_ids
         ):
             raise ValueError("A scripted peer must be a juror on the roster")
-        if self.scripted_peer is not None and (
-            self.lookup_allowance is None or not all(case.expected_verdict for case in cases)
+        if (
+            self.scripted_peer is not None
+            and self.peer_offer is None
+            and (self.lookup_allowance is None or not all(case.expected_verdict for case in cases))
         ):
             raise ValueError("A scripted juror peer needs the records service and verdicts")
         played = {

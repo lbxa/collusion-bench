@@ -1,6 +1,6 @@
 """Log finished runs to Weights & Biases: settings, outcome metrics, and retained files.
 
-Raw model-call traces and agent databases stay local, as they do in git. A run whose
+Raw model-call traces are opt-in; agent databases always stay local. A run whose
 uploadable files contain a credential or the Cloudflare account ID is refused.
 """
 
@@ -19,11 +19,12 @@ LOCAL_ONLY = (".trace.calls.jsonl", ".sqlite", ".sqlite-wal", ".sqlite-shm")
 MARKER = "wandb.json"
 
 
-def uploadable(directory: Path) -> list[Path]:
+def uploadable(directory: Path, *, include_model_calls: bool = False) -> list[Path]:
+    excluded = LOCAL_ONLY[1:] if include_model_calls else LOCAL_ONLY
     return sorted(
         path
         for path in directory.rglob("*")
-        if path.is_file() and not path.name.endswith(LOCAL_ONLY) and path.name != MARKER
+        if path.is_file() and not path.name.endswith(excluded) and path.name != MARKER
     )
 
 
@@ -221,18 +222,27 @@ def tags_for(directory: Path) -> list[str]:
     return ["excluded"] if "excluded" in directory.parts else []
 
 
-def check_secrets(directory: Path, needles: tuple[str, ...]) -> None:
+def check_secrets(
+    directory: Path, needles: tuple[str, ...], *, include_model_calls: bool = False
+) -> None:
     encoded = [needle.encode() for needle in needles if needle]
-    for path in uploadable(directory):
+    for path in uploadable(directory, include_model_calls=include_model_calls):
         data = path.read_bytes()
         if any(needle in data for needle in encoded):
             raise ValueError(f"Credential material in {path.relative_to(directory)}; not uploaded")
 
 
-def log_run(directory: Path, project: str, *, entity: str | None, needles: tuple[str, ...]) -> str:
+def log_run(
+    directory: Path,
+    project: str,
+    *,
+    entity: str | None,
+    needles: tuple[str, ...],
+    include_model_calls: bool = False,
+) -> str:
     import wandb
 
-    check_secrets(directory, needles)
+    check_secrets(directory, needles, include_model_calls=include_model_calls)
     config, summary, cases, probes = run_metrics(directory)
     run = wandb.init(
         project=project,
@@ -245,18 +255,21 @@ def log_run(directory: Path, project: str, *, entity: str | None, needles: tuple
         reinit="create_new",
     )
     run.summary.update(summary)
+    run.summary["raw_model_calls_included"] = include_model_calls
     for key, rows in (("cases", cases), ("probe", probes)):
         if rows:
             table = wandb.Table(columns=list(rows[0]), data=[list(row.values()) for row in rows])
             run.log({key: table})
     artifact = wandb.Artifact(config["run_id"], type="session")
-    for path in uploadable(directory):
+    for path in uploadable(directory, include_model_calls=include_model_calls):
         artifact.add_file(str(path), name=str(path.relative_to(directory)))
     run.log_artifact(artifact)
     url = run.url
     run.finish()
     if url:  # Offline runs have no URL and stay eligible for a later upload.
-        (directory / MARKER).write_text(json.dumps({"url": url}) + "\n")
+        (directory / MARKER).write_text(
+            json.dumps({"url": url, "include_model_calls": include_model_calls}) + "\n"
+        )
     return url
 
 
@@ -267,6 +280,11 @@ def main():
     parser.add_argument("--entity")
     parser.add_argument("--dotenv", type=Path, default=Path(".env"))
     parser.add_argument("--force", action="store_true", help="Log runs already logged")
+    parser.add_argument(
+        "--include-model-calls",
+        action="store_true",
+        help="Include raw model calls and returned reasoning after credential checks",
+    )
     args = parser.parse_args()
     values = {**dotenv_values(args.dotenv), **os.environ}
     if values.get("WANDB_API_KEY"):
@@ -292,7 +310,13 @@ def main():
             try:
                 print(
                     directory.name,
-                    log_run(directory, args.project, entity=args.entity, needles=needles),
+                    log_run(
+                        directory,
+                        args.project,
+                        entity=args.entity,
+                        needles=needles,
+                        include_model_calls=args.include_model_calls,
+                    ),
                 )
             except (ValueError, KeyError, json.JSONDecodeError) as error:
                 print(directory.name, "skipped:", error)
