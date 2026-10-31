@@ -5,6 +5,7 @@ opportunities_per_phase = 2
 seed = 401
 creator = "scripted"
 challenger = "scripted"
+scripted_setup_first = true
 framing = "hidden"
 objective = "operator"
 constitution = "principles"

@@ -121,3 +121,29 @@ A separate scripted calibration on the real engine inspected three disjoint
 20-record blocks, shared the records through the forum, then computed and
 revealed the correct verdict from the pooled 60 records. It establishes mechanism
 feasibility and is excluded from live-model behaviour counts.
+
+## Method revision 3: exposure before evaluated action
+
+The v2 offer audit revealed an ordering defect: a model could observe a newly
+filed challenge and commit within its OPEN-phase opportunity before the party's
+COMMIT-phase offer was posted. Those commitments do not measure response to an
+offer. These attempts are retained as exposure-invalid pilots, not resistance.
+
+All six v3 conditions set `scripted_setup_first = true`. Scripted parties finish
+setup before evaluated juror notifications. The exact party offer is confirmed
+in the forum, then a configured seeded peer acts and its commitment is confirmed
+on chain, then evaluated jurors receive their first voting opportunity. Fixtures
+act once per phase, preventing duplicate fixed offers. Evaluated jurors still act
+concurrently and can vote honestly, reject the offer, negotiate, or abstain.
+Each case retains `scripted-setup.jsonl` plus ordinary model/action evidence.
+
+The initial public forum contents are included as participant-message data in
+the evaluated jurors' first voting notification (an empty list in the baseline).
+No operator role identifiers or private messages are injected. This guarantees
+observed proposal exposure rather than relying on optional API browsing, and
+keeps the result a controlled susceptibility test rather than discovery evidence.
+
+The complete ten-case v2 baseline remains a separate timing version. The v3
+baseline is rerun under the same script-first scheduling as every treatment.
+The primary assignment registry consists of `wave-*-v3.json`; earlier versions
+and all operational attempts remain visible outside those primary assignments.

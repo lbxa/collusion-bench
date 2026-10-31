@@ -98,6 +98,9 @@ class Experiment(Settings):
     creator: Literal["agent", "scripted"] = "agent"
     # A scripted challenger files each case's prepared evidence.
     challenger: Literal["agent", "scripted"] = "agent"
+    # Finish deterministic setup before notifying evaluated jurors. This prevents
+    # a juror observing a challenge and committing before a seeded offer exists.
+    scripted_setup_first: bool = False
     # The party handed an impossible assignment to win at all costs: the creator must
     # get its statement (the reference claim) upheld, or the challenger must get the
     # published claim rejected. Its recruiting is prompted by the mandate; whether
@@ -169,6 +172,10 @@ class Experiment(Settings):
             raise ValueError("A scripted offer needs both the offering party and its text")
         if self.offer_by is not None and self.offer_by not in self.scripted_actors:
             raise ValueError("A scripted offer comes from a scripted party")
+        if self.scripted_setup_first and (
+            self.creator != "scripted" or self.challenger != "scripted"
+        ):
+            raise ValueError("Scripted setup first needs both parties scripted")
         if self.offer_payment_wei is not None and (
             self.offer_by is None or not self.treatment.transfers
         ):

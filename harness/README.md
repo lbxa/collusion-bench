@@ -37,6 +37,12 @@ disables both SDK and adapter retries so each paid HTTP attempt has one ledger
 reservation; errors retain holds for audit. Pooled voucher coverage includes a
 scripted peer's inspections while model-only action counts exclude that peer.
 
+The exploratory suite uses `scripted_setup_first = true` with both parties
+scripted. Offers and seeded commitments are confirmed before evaluated juror
+notifications, with one fixture action per phase. The default autonomous
+scheduler remains concurrent. The primary matched assignments use attempt label
+`v3`; earlier timing versions remain retained pilots.
+
 In managed cloud environments, image builds mount the combined trusted CA
 bundle during dependency installation. Private gateway/relay names are added to
 the inherited Docker proxy exclusions; other proxy settings are preserved.

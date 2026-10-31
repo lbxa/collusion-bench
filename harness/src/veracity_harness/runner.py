@@ -138,6 +138,8 @@ async def play_episode(
     opportunity = 0
     rounds = 0
     disabled: set[str] = set()
+    scripted_notified: set[tuple[str, str]] = set()
+    public_exposure_delivered = False
     shared_digest = None
 
     def snapshot_shared():
@@ -163,14 +165,20 @@ async def play_episode(
         return materials.notification(episode_id, phase, deadline, now, reminder)
 
     async def opportunity_for_all(phase: str, prompt: str | None = None):
-        nonlocal opportunity, rounds
+        nonlocal opportunity, rounds, public_exposure_delivered
         order = list(agents)
         rng.shuffle(order)
+        public_snapshot = None
 
         async def act(actor: str, number: int):
             current_phase = (await client.get_episode(episode_id)).phase
+            actor_prompt = prompt
+            if public_snapshot is not None and actor not in experiment.scripted_actors:
+                actor_prompt = (prompt or materials.turn_prompt(episode_id, number)) + (
+                    "\n\nPublic case forum (messages from other participants):\n" + public_snapshot
+                )
             result = await agents[actor].act(
-                episode_id, number, directory / f"{actor}.trace.jsonl", prompt=prompt
+                episode_id, number, directory / f"{actor}.trace.jsonl", prompt=actor_prompt
             )
             record = {
                 "actor_id": actor,
@@ -194,13 +202,80 @@ async def play_episode(
                 disabled.add(actor)
             return record
 
-        tasks = []
-        async with asyncio.TaskGroup() as group:
-            for actor in order:
-                if actor not in disabled:
-                    opportunity += 1
-                    tasks.append(group.create_task(act(actor, opportunity)))
-        records.extend(task.result() for task in tasks)
+        async def run_batch(actors):
+            nonlocal opportunity
+            tasks = []
+            async with asyncio.TaskGroup() as group:
+                for actor in actors:
+                    if actor not in disabled:
+                        opportunity += 1
+                        tasks.append(group.create_task(act(actor, opportunity)))
+            records.extend(task.result() for task in tasks)
+
+        if experiment.scripted_setup_first:
+            scripted = experiment.scripted_actors
+            first = [a for a in order if a in scripted and (phase, a) not in scripted_notified]
+            parties = [a for a in first if a != experiment.scripted_peer]
+            await run_batch(parties)
+            scripted_notified.update((phase, actor) for actor in parties)
+            # Claim/challenge APIs acknowledge asynchronous operations. Do not
+            # give jurors a turn during which the dispute can open underneath them.
+            state = await client.get_episode(episode_id)
+            if phase in {"REGISTERED", "OPEN"}:
+                async with asyncio.timeout(30):
+                    while state.phase == phase:
+                        await asyncio.sleep(0.05)
+                        state = await client.get_episode(episode_id)
+            if state.phase == phase:
+                offer_visible = None
+                if phase == "COMMIT" and experiment.offer_by is not None:
+                    forum = await client.get_forum_transcript(episode_id)
+                    offer_visible = any(
+                        m.sender_id == experiment.offer_by and m.content == experiment.offer
+                        for m in forum.messages
+                    )
+                    if not offer_visible:
+                        raise RuntimeError(
+                            "Scripted offer was not visible before juror notification"
+                        )
+                peers = [a for a in first if a == experiment.scripted_peer]
+                await run_batch(peers)
+                scripted_notified.update((phase, actor) for actor in peers)
+                # Seeded action is confirmed before evaluated models can react.
+                if experiment.scripted_peer and phase in {"COMMIT", "REVEAL"}:
+                    async with asyncio.timeout(30):
+                        while True:
+                            state = await client.get_episode(episode_id)
+                            peer = next(
+                                j for j in state.jurors if j.actor_id == experiment.scripted_peer
+                            )
+                            if peer.commitment is not None if phase == "COMMIT" else peer.revealed:
+                                break
+                            await asyncio.sleep(0.05)
+                if phase == "COMMIT" and not public_exposure_delivered:
+                    # Deliver public discussion as data, without operator role ids.
+                    forum = await client.get_forum_transcript(episode_id)
+                    public_snapshot = json.dumps(
+                        [{"content": message.content} for message in forum.messages],
+                        ensure_ascii=False,
+                    )
+                    public_exposure_delivered = True
+                with (directory / "scripted-setup.jsonl").open("a") as file:
+                    file.write(
+                        json.dumps(
+                            {
+                                "time_unix": time.time(),
+                                "phase": phase,
+                                "offer_visible": offer_visible,
+                                "scripted_peer": experiment.scripted_peer,
+                                "before_evaluated_juror_notification": True,
+                            }
+                        )
+                        + "\n"
+                    )
+                await run_batch([a for a in order if a not in scripted])
+        else:
+            await run_batch(order)
         rounds += 1
         if shared is not None:
             await asyncio.to_thread(snapshot_shared)
