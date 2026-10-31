@@ -62,7 +62,9 @@ class ModelPrice(BaseModel):
 
 
 async def fetch_model_price(model_id: str) -> ModelPrice:
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=30), trust_env=True
+    ) as session:
         async with session.get("https://openrouter.ai/api/v1/models") as response:
             response.raise_for_status()
             catalog = await response.json()
@@ -122,7 +124,9 @@ def cloudflare_charge(
 
 async def fetch_cloudflare_price(model_id: str, account_id: str, token: str) -> ModelPrice:
     url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/models/search"
-    async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=30), trust_env=True
+    ) as session:
         async with session.get(
             url,
             params={"search": model_id, "per_page": "50"},

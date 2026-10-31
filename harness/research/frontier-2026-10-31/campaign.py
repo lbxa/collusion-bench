@@ -47,6 +47,7 @@ async def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--wave", choices=ARMS, required=True)
+    parser.add_argument("--attempt-label", default="01")
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
@@ -86,7 +87,7 @@ async def main():
         "spending_before": spending_export(output),
         "attempts": [],
     }
-    record = output / f"wave-{args.wave}.json"
+    record = output / f"wave-{args.wave}-{args.attempt_label}.json"
     if record.exists():
         raise RuntimeError(
             "Wave already has an audit record; retain it and choose a new campaign version"
@@ -108,8 +109,8 @@ async def main():
     # Runs are independent processes, but share the exact same cap and per-model
     # rate database. Upload SDK lifecycle calls run sequentially after the wave.
     async def run_one(slug, model):
-        stdout = output / f"{args.wave}-{slug}.stdout"
-        stderr = output / f"{args.wave}-{slug}.stderr"
+        stdout = output / f"{args.wave}-{args.attempt_label}-{slug}.stdout"
+        stderr = output / f"{args.wave}-{args.attempt_label}-{slug}.stderr"
         command = [
             sys.executable,
             "-m",
@@ -127,6 +128,7 @@ async def main():
             "500",
         ]
         started = datetime.now(UTC).isoformat()
+        previous = set(output.glob("run-*/run.json"))
         print(f"START {args.wave} {slug}", flush=True)
         with stdout.open("w") as out, stderr.open("w") as err:
             process = await asyncio.create_subprocess_exec(
@@ -147,6 +149,7 @@ async def main():
         attempt["runs"] = [
             str(p.parent.relative_to(output))
             for p in output.glob("run-*/run.json")
+            if p not in previous
             if (m := json.loads(p.read_text()))["config"]["name"] == f"frontier-{args.wave}"
             and m["config"]["model"]["name"] == model
         ]
