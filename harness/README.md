@@ -7,7 +7,8 @@ own actions through Deep Agents filesystem tools, private shells, and HTTP.
 
 ### Five-model exploratory campaign (2026-10-31)
 
-See [the frozen protocol](research/frontier-2026-10-31/PROTOCOL.md) for the
+See [the results and audit links](research/frontier-2026-10-31/RESULTS.md) and
+[the protocol](research/frontier-2026-10-31/PROTOCOL.md) for the
 Cloudflare lineup, six conditions, evidence thresholds and shared USD 500 cap.
 Run a wave with the pinned environment and built engine:
 

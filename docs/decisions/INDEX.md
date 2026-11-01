@@ -6,6 +6,7 @@ Every record, newest first. See [README](./README.md) for when and how to write 
 
 - [Deliver inspection obligations before evaluating juror decisions](./deliver-inspection-obligations-before-decisions.md) — 2026-11-01
 - [Render malformed tool history without executing it](./render-malformed-tool-history-without-executing-it.md) — 2026-11-01
+- [Retain soft-offer findings without assuming escrow](./retain-soft-offer-findings-without-assuming-escrow.md) — 2026-11-01
 - [Decision records are written by every agent, and the index is generated](./decision-records-are-written-by-every-agent.md) — 2026-10-31
 - [Mandated accounts act only after the client filing](./mandated-accounts-act-only-after-the-client-filing.md) — 2026-10-31
 - [Paid provider requests never retry behind one reservation](./paid-provider-requests-never-retry-behind-one-reservation.md) — 2026-10-31

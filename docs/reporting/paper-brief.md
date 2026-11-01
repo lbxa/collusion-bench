@@ -94,38 +94,75 @@ runs; comparisons must disclose backend and protocol differences.
 ### Five-model Cloudflare study, started 2026-10-31
 
 This separate exploratory study follows the
-[frozen protocol](../../harness/research/frontier-2026-10-31/PROTOCOL.md).
+[protocol](../../harness/research/frontier-2026-10-31/PROTOCOL.md) and
+[campaign results](../../harness/research/frontier-2026-10-31/RESULTS.md).
 The owner approved DeepSeek V4 Pro 0813, GLM-5.3, Kimi K2.6, Kimi K2.7 Code,
 and DeepSeek V4.1 Flash 1017 after OpenRouter authentication failed. These are
 five Cloudflare endpoints from three model families. The primary conditions use
 the fixed principles constitution with explicit truth and independent-judgment
 duties; the current short root charter is a separate supplemental calibration.
 
-At the 2026-11-01 instruction-exposure revision, all four factual conditions are
-complete: 20 sessions, 40 cases and 110 modeled revealed ballots, all correct,
-with no credit sidepayments. These nested ballots are measurement counts, not
-independent experimental replicates. Each cell has one session with two cases
-and retained memory, seed 401. Turn limits and high evaluation-awareness probes
-must accompany interpretation. No population collusion rate or model ranking
-follows from these counts.
+The completed primary registry contains 30 sessions and 60 cases: six conditions
+per model, one two-case memory block per cell, launch seed 401. Four factual
+conditions produced 40 correct majority verdicts and 110 correct modeled
+reveals, with no wrong modeled reveal or sidepayment. Verification-alone
+produced seven partial-inspection commitments/reveals, five factually wrong,
+without inter-juror messages. These are individual procedural departures, not
+established coordination. Verification-peer produced no evaluated commitment
+or reveal. All 20 primary verification cases ended without a majority; three
+had execution errors. Turn/call limits are also reported. Nested votes/cases are
+not independent replicates, and these counts support no population rate or
+model ranking.
 
-The complete earlier voucher verification-alone wave remains an
-instruction-discovery version: the inspection standard was mounted but absent
-from the opening instructions. The two primary voucher conditions will repeat
-with the complete standard in the initial prompt. The final primary selection is
-the frozen `primary-assignments.json` in the campaign audit packet: four factual
-v3 waves and two verification v4 waves. Two separate `adaptive1` conditions test
-the existing client-plan pressure and the current root charter; they are not
-primary replicates. All versions and operational attempts remain retained.
+The primary registry was frozen before revised verification results and selects
+four unaffected factual v3 waves and both verification v4 waves. All 50
+evaluated v4 opening prompts contain the complete inspection standard. The
+earlier five verification-alone sessions remain an instruction-discovery
+version: mounted instructions and later rule discovery do not establish
+pre-action knowledge. Two supplemental conditions add 10 sessions and 20 cases,
+testing the existing monthly client-plan pressure and the current short charter.
+They remain separate from primary evidence and are not primary replicates.
+The monthly target was not presented as a two-case deadline. Coordination under
+the short charter cannot violate truth/independence duties that it omits.
+Its two Kimi endpoints produced three paid wrong-majority cases: six modeled
+wrong reveals and 60 ETH of synthetic local credit paid to modeled jurors.
+Returned pre-action rationales discuss the factual contradiction, offered
+payment and seeded-majority incentive; private payment requests also occur
+with Kimi K2.7 Code. These are induced financial-coordination observations,
+not spontaneous model-only recruitment or violations of omitted duties.
+The first Kimi K2.6 calibration case retains an intended wrong-vote action
+prefix and unrevealed commitment, but ends without a majority after a timeout.
+Offer promises are not escrowed, so counterparty trust remains a limitation.
 
-Raw calls, returned reasoning, inputs, actions, payoffs, source archives and
-hashes are published in the
-[W&B project](https://forge.coreweave.com/wandb/lbxa-corp/collusion-benchmark).
-The standalone campaign audit will bind the primary registry, supplemental
-results, all request costs and unresolved holds, public transaction receipts,
-chain logs and offline analysis. A single immutable USD 500 ledger covers every
-attempt. Coordination annotations remain provisional pending independent human
-review; a wrong ballot or incomplete inspection alone is not a collusion label.
+The [campaign audit](https://forge.coreweave.com/wandb/lbxa-corp/collusion-benchmark/runs/2lkzpteb) publishes
+`frontier-2026-10-31-audit:v0` and pins every raw session artifact, including failures
+and superseded versions, with returned reasoning, inputs, actions, payoffs,
+source archives/bundle, exact runtime references, hashes, public transaction
+bytes/receipts, provisional annotations, and offline reproduction instructions.
+Both selected analyses reproduce exactly from downloaded W&B artifacts without
+new model calls. The inspection-exposure revision passed 347 Python tests; the later transport
+repair passed the full gate with 350 Python tests. Malformed historical calls
+and their errors are rendered as explicit unexecuted text before the final
+calibration. This conditional recovery difference prevents interpreting the
+supplemental contrast as a pure charter effect.
+
+The single immutable USD 500 inference ledger records USD
+42.561955184278488157441 in known charges and USD 65.957651824278488157441
+including full unresolved holds, across every attempt and awareness probe.
+These USD amounts are distinct from synthetic local Anvil credit rewards.
+Primary awareness probes have 79 valid self-reports from 80 attempts, ranging
+from 80% to 100%; one missing response remains visible. The probe is not ground
+truth. Coordination annotations remain provisional, with no independent human
+adjudication. A wrong ballot, incomplete inspection or scripted proposal alone
+is not an executed collusion label.
+
+Claim-to-evidence mapping: outcomes and exact denominators are in
+`analysis-primary.json` and `analysis-adaptive.json`; exposure/order is in
+`primary-exposure-audit.json`; costs, conservation and ballots are in
+`accounting-audit.json`, `chain-audit.json` and `ballot-chain-audit.json`;
+published byte/replay identity is in `campaign-replay-audit.json` and
+`session-artifacts.json`; bounded event annotations are in
+`reviews/provisional-v1.json`. These refer to the pinned campaign-audit artifact.
 
 The historical manuscript and evidence register below retain their original
 scope. This new packet supplies no replacement manuscript or submission claim.
