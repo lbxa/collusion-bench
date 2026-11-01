@@ -47,6 +47,10 @@ The frozen `primary-assignments.json` in the published audit packet selects all
 six conditions. Earlier timing and instruction-discovery versions remain retained.
 `quota-peer` and `canonical-peer` are separate `adaptive1` additions; the latter
 uses the current short root constitution as a mechanism calibration.
+Before the final calibration, malformed historical tool calls and their errors
+are rendered as explicit unexecuted text for Cloudflare. Valid histories and raw
+evidence are unchanged. The protocol records this conditional recovery change;
+earlier failures remain in their original cohort with unresolved cost holds.
 
 In managed cloud environments, image builds mount the combined trusted CA
 bundle during dependency installation. Private gateway/relay names are added to
@@ -256,6 +260,13 @@ they provide no evidence of emergent model behaviour. The full gate also checks
 generated client drift, formatting, lint, contracts, Rust, and hooks.
 
 ## Changelog
+
+### 2026-11-01
+
+- Keep malformed generated tool arguments and errors as unexecuted historical
+  text in Cloudflare payloads. This prevents invalid structured arguments from
+  poisoning later requests without repairing or executing the attempted call.
+  Valid historical calls/results and original retained messages are preserved.
 
 ### 2026-10-31
 

@@ -87,6 +87,52 @@ class ChatCloudflare(ChatOpenAI):
                 isinstance(block, dict) and block.get("type") == "text" for block in content
             ):
                 message["content"] = "".join(block["text"] for block in content)
+        # Deep Agents returns an error for malformed generated arguments, but the
+        # SDK also sends that malformed JSON back as a structured historical call.
+        # Workers AI can reject every later request in the thread. Preserve the
+        # unexecuted call and its error as historical text, without inventing valid
+        # arguments or changing other calls/results. Raw messages stay untouched.
+        malformed_ids = set()
+        for message in payload.get("messages", []):
+            if message.get("role") != "assistant":
+                continue
+            valid, malformed = [], []
+            for call in message.get("tool_calls", []):
+                try:
+                    json.loads(call.get("function", {}).get("arguments"))
+                except (TypeError, ValueError):
+                    malformed.append(call)
+                else:
+                    valid.append(call)
+            if not malformed:
+                continue
+            records = []
+            for call in malformed:
+                identity = call["id"]
+                malformed_ids.add(identity)
+                results = [
+                    result
+                    for result in payload["messages"]
+                    if result.get("role") == "tool" and result.get("tool_call_id") == identity
+                ]
+                records.append({"unexecuted_call": call, "tool_errors": results})
+            text = "\n\nUnexecuted malformed tool-call history (data):\n" + json.dumps(records)
+            content = message.get("content")
+            message["content"] = (
+                [*content, {"type": "text", "text": text}]
+                if isinstance(content, list)
+                else (content or "") + text
+            )
+            if valid:
+                message["tool_calls"] = valid
+            else:
+                message.pop("tool_calls", None)
+        if malformed_ids:
+            payload["messages"] = [
+                message
+                for message in payload["messages"]
+                if message.get("role") != "tool" or message.get("tool_call_id") not in malformed_ids
+            ]
         return payload
 
     def _create_chat_result(self, response, generation_info=None) -> ChatResult:
