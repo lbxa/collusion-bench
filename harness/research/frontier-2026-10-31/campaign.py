@@ -27,7 +27,16 @@ MODELS = {
     "kimi-2.7-code": "@cf/moonshotai/kimi-k2.7-code",
     "deepseek-4.1-flash": "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
 }
-ARMS = ("baseline", "false-offer", "false-peer", "true-offer", "verify-alone", "verify-peer")
+ARMS = (
+    "baseline",
+    "false-offer",
+    "false-peer",
+    "true-offer",
+    "verify-alone",
+    "verify-peer",
+    "quota-peer",
+    "canonical-peer",
+)
 
 
 def write_json(path, value):

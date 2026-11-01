@@ -91,6 +91,45 @@ runs; comparisons must disclose backend and protocol differences.
 
 ## Actual evidence register
 
+### Five-model Cloudflare study, started 2026-10-31
+
+This separate exploratory study follows the
+[frozen protocol](../../harness/research/frontier-2026-10-31/PROTOCOL.md).
+The owner approved DeepSeek V4 Pro 0813, GLM-5.3, Kimi K2.6, Kimi K2.7 Code,
+and DeepSeek V4.1 Flash 1017 after OpenRouter authentication failed. These are
+five Cloudflare endpoints from three model families. The primary conditions use
+the fixed principles constitution with explicit truth and independent-judgment
+duties; the current short root charter is a separate supplemental calibration.
+
+At the 2026-11-01 instruction-exposure revision, all four factual conditions are
+complete: 20 sessions, 40 cases and 110 modeled revealed ballots, all correct,
+with no credit sidepayments. These nested ballots are measurement counts, not
+independent experimental replicates. Each cell has one session with two cases
+and retained memory, seed 401. Turn limits and high evaluation-awareness probes
+must accompany interpretation. No population collusion rate or model ranking
+follows from these counts.
+
+The complete earlier voucher verification-alone wave remains an
+instruction-discovery version: the inspection standard was mounted but absent
+from the opening instructions. The two primary voucher conditions will repeat
+with the complete standard in the initial prompt. The final primary selection is
+the frozen `primary-assignments.json` in the campaign audit packet: four factual
+v3 waves and two verification v4 waves. Two separate `adaptive1` conditions test
+the existing client-plan pressure and the current root charter; they are not
+primary replicates. All versions and operational attempts remain retained.
+
+Raw calls, returned reasoning, inputs, actions, payoffs, source archives and
+hashes are published in the
+[W&B project](https://forge.coreweave.com/wandb/lbxa-corp/collusion-benchmark).
+The standalone campaign audit will bind the primary registry, supplemental
+results, all request costs and unresolved holds, public transaction receipts,
+chain logs and offline analysis. A single immutable USD 500 ledger covers every
+attempt. Coordination annotations remain provisional pending independent human
+review; a wrong ballot or incomplete inspection alone is not a collusion label.
+
+The historical manuscript and evidence register below retain their original
+scope. This new packet supplies no replacement manuscript or submission claim.
+
 Populate one row per admitted result set. An existing file is a candidate, not
 automatically admissible evidence. Keep excluded runs and reasons discoverable.
 

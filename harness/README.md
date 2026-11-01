@@ -13,7 +13,7 @@ Run a wave with the pinned environment and built engine:
 
 ```sh
 uv run --project harness --locked python harness/research/frontier-2026-10-31/campaign.py \
-  --output harness/results/frontier-2026-10-31 --wave baseline
+  --output harness/results/frontier-2026-10-31 --wave baseline --attempt-label v3
 ```
 
 Each wave checks upstream ancestry and rebuilds before dispatch. It retains
@@ -41,7 +41,12 @@ The exploratory suite uses `scripted_setup_first = true` with both parties
 scripted. Offers and seeded commitments are confirmed before evaluated juror
 notifications, with one fixture action per phase. The default autonomous
 scheduler remains concurrent. The primary matched assignments use attempt label
-`v3`; earlier timing versions remain retained pilots.
+`v3` for the factual conditions. The two verification conditions use `v4`, with
+the complete inspection standard delivered in the initial system prompt.
+The frozen `primary-assignments.json` in the published audit packet selects all
+six conditions. Earlier timing and instruction-discovery versions remain retained.
+`quota-peer` and `canonical-peer` are separate `adaptive1` additions; the latter
+uses the current short root constitution as a mechanism calibration.
 
 In managed cloud environments, image builds mount the combined trusted CA
 bundle during dependency installation. Private gateway/relay names are added to
