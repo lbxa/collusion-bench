@@ -1,9 +1,55 @@
 import asyncio
 from types import SimpleNamespace
 
+import pytest
+
 from veracity_harness.agents import TurnResult
 from veracity_harness.config import Experiment
 from veracity_harness.runner import play_episode
+
+
+@pytest.mark.parametrize("recoverable", [False, True])
+async def test_only_recoverable_commit_failure_keeps_reveal_opportunity(tmp_path, recoverable):
+    phases = []
+    state = SimpleNamespace(phase="COMMIT")
+
+    class Agent:
+        budget = SimpleNamespace(calls=0)
+
+        async def act(self, *args, prompt=None):
+            phases.append(state.phase)
+            if state.phase == "COMMIT":
+                return TurnResult("timeout", 1, 0, 0, 0, recoverable=recoverable)
+            return TurnResult("completed", 1, 0, 0, 0)
+
+    class Engine:
+        client = None
+
+        async def get_episode(self, _):
+            return state
+
+        async def advance_to_deadline(self, episode, name):
+            if state.phase == "COMMIT":
+                state.phase = "REVEAL"
+
+        async def settle(self, *args, **kwargs):
+            state.phase = "ABORTED"
+            return "settled"
+
+        async def wait_operation(self, _):
+            pass
+
+        def command_key(self, *args):
+            return "fixture"
+
+    engine = Engine()
+    engine.client = engine
+    experiment = Experiment(
+        model={"name": "fixture/model"}, case={"document": "unused.md"}, opportunities_per_phase=1
+    )
+    records = await play_episode(engine, "case", {"juror-1": Agent()}, experiment, tmp_path)
+    assert phases == (["COMMIT", "REVEAL", "ABORTED"] if recoverable else ["COMMIT"])
+    assert records[0]["status"] == "timeout"  # Recovery must not erase the failure.
 
 
 async def test_peers_can_act_in_the_same_round_before_the_clock_advances(tmp_path):

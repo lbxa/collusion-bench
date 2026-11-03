@@ -19,18 +19,20 @@ from deepagents.backends import CompositeBackend, FilesystemBackend
 from deepagents.backends.protocol import SandboxBackendProtocol
 from langchain.agents.middleware import TodoListMiddleware
 from langchain_core.callbacks import BaseCallbackHandler
+from langchain_core.exceptions import ModelError
 from langchain_core.language_models import BaseChatModel
 from langchain_core.load import dumpd
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, RemoveMessage, ToolMessage
 from langchain_core.outputs import ChatGeneration, ChatResult, LLMResult
 from langchain_openai import ChatOpenAI
 from langchain_openrouter import ChatOpenRouter
 from langgraph.checkpoint.base import BaseCheckpointSaver
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from pydantic import SecretStr
 
 from .config import ModelSettings
 from .materials import turn_prompt
-from .ratelimit import acquire
+from .ratelimit import WINDOW_SECONDS, acquire, default_path
 from .sandbox import URL_VARIABLE
 from .spending import CampaignSpending, ModelPrice, SpendingLimitReached, cloudflare_charge
 
@@ -52,10 +54,14 @@ class ChatCloudflare(ChatOpenAI):
 
     requests_per_minute: int = 18
     capacity_retries: int = CAPACITY_RETRIES
+    rate_limit_path: Path | None = None
 
     async def _agenerate(self, messages, stop=None, run_manager=None, **kwargs) -> ChatResult:
         for attempt in range(self.capacity_retries + 1):
-            await acquire(self.model_name, self.requests_per_minute)
+            if self.rate_limit_path is None:
+                await acquire(self.model_name, self.requests_per_minute)
+            else:
+                await acquire(self.model_name, self.requests_per_minute, path=self.rate_limit_path)
             try:
                 result = await super()._agenerate(
                     messages, stop=stop, run_manager=run_manager, **kwargs
@@ -165,6 +171,10 @@ class BudgetExceeded(RuntimeError):
     """The next provider request is outside the pre-registered resource budget."""
 
 
+class TurnDeadlineReached(BudgetExceeded):
+    """Yield between model invocations without cancelling an in-flight response."""
+
+
 class ModelBudget(BaseCallbackHandler):
     """One counter shared by parent, delegated agents, and summarization calls."""
 
@@ -187,6 +197,8 @@ class ModelBudget(BaseCallbackHandler):
         self.spending = spending
         self.price = price
         self.audit_path: Path | None = None
+        self.turn_deadline: float | None = None
+        self.pending_requests: set[str] = set()
 
     def audit(self, event: str, **fields):
         if self.audit_path is not None:
@@ -206,9 +218,12 @@ class ModelBudget(BaseCallbackHandler):
     def begin_turn(self):
         with self.lock:
             self.turn_calls = 0
+            self.turn_deadline = time.monotonic() + self.settings.turn_timeout_seconds
 
     def on_chat_model_start(self, serialized, messages, *, run_id=None, **kwargs):
         with self.lock:
+            if self.turn_deadline is not None and time.monotonic() >= self.turn_deadline:
+                raise TurnDeadlineReached("Turn time budget reached before another model request")
             if (
                 self.calls >= self.settings.calls_per_episode
                 or self.turn_calls >= self.settings.calls_per_turn
@@ -220,6 +235,7 @@ class ModelBudget(BaseCallbackHandler):
                 self.spending.reserve(str(run_id), self.price, self.settings.max_tokens)
             self.calls += 1
             self.turn_calls += 1
+            self.pending_requests.add(str(run_id))
             self.audit(
                 "model_start",
                 request_id=str(run_id),
@@ -246,6 +262,7 @@ class ModelBudget(BaseCallbackHandler):
                 request_id=str(run_id),
                 response=response.model_dump(mode="json", serialize_as_any=True),
             )
+            self.pending_requests.discard(str(run_id))
             if self.spending is not None:
                 costs = [self.charge(message) for message in messages]
                 known = bool(costs) and all(cost is not None for cost in costs)
@@ -264,22 +281,34 @@ class ModelBudget(BaseCallbackHandler):
     def on_llm_error(self, error: BaseException, *, run_id=None, **kwargs):
         with self.lock:
             self.audit(
-                "model_error",
+                "model_cancelled" if isinstance(error, asyncio.CancelledError) else "model_error",
                 request_id=str(run_id),
                 error_type=type(error).__name__,
                 status_code=getattr(error, "status_code", None),
             )
+            self.pending_requests.discard(str(run_id))
+
+    def cancel_pending(self):
+        """Retain explicit cancellation evidence and every unresolved monetary hold."""
+        with self.lock:
+            for identity in sorted(self.pending_requests):
+                self.audit("model_cancelled", request_id=identity, error_type="TurnInterrupted")
+            self.pending_requests.clear()
 
 
 @dataclass(frozen=True)
 class TurnResult:
-    status: Literal["completed", "budget_exhausted", "timeout", "failed"]
+    status: Literal["completed", "budget_exhausted", "yielded", "timeout", "failed"]
     model_calls: int
     input_tokens: int
     output_tokens: int
     elapsed_seconds: float
     error_type: str | None = None
     reasoning_calls: int = 0
+    recoverable: bool = False
+    http_status: int | None = None
+    failure_kind: str | None = None
+    recovered_tool_results: int = 0
 
 
 def offer_branch(episode: str, offer: str | None) -> str:
@@ -588,6 +617,7 @@ class ParticipantAgent:
         self.budget = ModelBudget(settings, spending, price)
         self.provider_client = None
         if model is None and settings.provider == "cloudflare":
+            rate_path = default_path()
             account = os.environ["CLOUDFLARE_ACCOUNT_ID"]
             model = ChatCloudflare(
                 model=settings.name,
@@ -600,6 +630,7 @@ class ParticipantAgent:
                 # retries (including uncertain timeout/gateway charges) in one hold.
                 capacity_retries=0,
                 requests_per_minute=settings.requests_per_minute,
+                rate_limit_path=rate_path,
                 reasoning_effort=settings.reasoning.effort if settings.reasoning else None,
                 # Size summarisation to the catalog window rather than a generic default.
                 profile={"max_input_tokens": price.context_length} if price else None,
@@ -660,6 +691,46 @@ class ParticipantAgent:
         replies = [message for message in messages if isinstance(message, AIMessage)]
         return result, replies[-1].text if replies else ""
 
+    async def _recover_interrupted_tools(self) -> int:
+        """Close incomplete protocol history without repeating uncertain external effects."""
+        config = {"configurable": {"thread_id": self.actor_id}}
+        messages = (await self.graph.aget_state(config)).values.get("messages", [])
+        repaired, missing = [], []
+        for index, message in enumerate(messages):
+            repaired.append(message)
+            if not isinstance(message, AIMessage):
+                continue
+            results = set()
+            for result in messages[index + 1 :]:
+                if not isinstance(result, ToolMessage):
+                    break
+                results.add(result.tool_call_id)
+            for call in [*message.tool_calls, *message.invalid_tool_calls]:
+                identity = call.get("id")
+                if identity is None or identity in results:
+                    continue
+                missing.append(identity)
+                repaired.append(
+                    ToolMessage(
+                        content=(
+                            "Previous execution was interrupted; no retained tool result is "
+                            "available. External effects are unknown. Inspect current game "
+                            "state and retain idempotency keys before choosing another action."
+                        ),
+                        tool_call_id=identity,
+                        name=call.get("name"),
+                        status="error",
+                    )
+                )
+        if missing:
+            await self.graph.aupdate_state(
+                config,
+                {"messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES), *repaired]},
+                as_node="tools",
+            )
+            self.budget.audit("history_recovery", missing_tool_call_ids=missing)
+        return len(missing)
+
     async def act(
         self, episode_id: str, opportunity: int, trace_path: Path, prompt: str | None = None
     ) -> TurnResult:
@@ -670,10 +741,15 @@ class ParticipantAgent:
         self.budget.audit_path = trace_path.with_suffix(".calls.jsonl")
         started = time.monotonic()
         status, error_type = "completed", None
+        recoverable, http_status, failure_kind, recovered = False, None, None, 0
         prompt = prompt or turn_prompt(episode_id, opportunity)
+        # The soft deadline stops new requests. Allow one in-flight provider request,
+        # rate-window wait, and tool completion before the final cancellation guard.
+        watchdog = asyncio.timeout(2 * self.settings.turn_timeout_seconds + WINDOW_SECONDS + 30)
         try:
             with trace_path.open("a", encoding="utf-8") as trace:
-                async with asyncio.timeout(self.settings.turn_timeout_seconds):
+                async with watchdog:
+                    recovered = await self._recover_interrupted_tools()
                     async for namespace, update in self.graph.astream(
                         {"messages": [{"role": "user", "content": prompt}]},
                         config={
@@ -696,14 +772,27 @@ class ParticipantAgent:
                             + "\n"
                         )
                         trace.flush()
+        except TurnDeadlineReached:
+            status = "yielded"
         except BudgetExceeded:
             status = "budget_exhausted"
         except SpendingLimitReached:
             raise
         except TimeoutError:
-            status = "timeout"
+            status, error_type, recoverable = "timeout", "TimeoutError", True
+            failure_kind = "turn_timeout" if watchdog.expired() else "request_timeout"
         except Exception as error:
             status, error_type = "failed", type(error).__name__
+            http_status = safe_http_status(error)
+            recoverable = (
+                http_status in {408, 429}
+                or (http_status is not None and http_status >= 500)
+                or isinstance(error, openai.APIConnectionError)
+                or (isinstance(error, ModelError) and error.is_retryable)
+            )
+            failure_kind = "provider_transient" if recoverable else "execution_error"
+        finally:
+            self.budget.cancel_pending()
         return TurnResult(
             status,
             self.budget.calls - before,
@@ -712,4 +801,16 @@ class ParticipantAgent:
             time.monotonic() - started,
             error_type,
             self.budget.reasoning_calls - before_reasoning,
+            recoverable=recoverable,
+            http_status=http_status,
+            failure_kind=failure_kind,
+            recovered_tool_results=recovered,
         )
+
+
+def safe_http_status(error: BaseException) -> int | None:
+    """Retain useful diagnostics without copying exception bodies or credentials."""
+    status = getattr(error, "status_code", None)
+    if status is None:
+        status = getattr(getattr(error, "response", None), "status_code", None)
+    return status if type(status) is int and 100 <= status <= 599 else None

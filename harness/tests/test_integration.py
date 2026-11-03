@@ -5,6 +5,8 @@ import re
 import shlex
 import time
 
+import httpx
+import openai
 import pytest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
@@ -108,6 +110,80 @@ class PassiveModel(BaseChatModel):
         return ChatResult(
             generations=[ChatGeneration(message=AIMessage(content="I take no action."))]
         )
+
+
+class InterruptedProtocolModel(ProtocolFixtureModel):
+    fault: str
+    injected: bool = False
+
+    def _generate(self, messages, stop=None, run_manager=None, **kwargs):
+        actor = run_manager.metadata["lc_agent_name"]
+        output = messages[-1].content if isinstance(messages[-1], ToolMessage) else ""
+        trigger = (
+            "REVEAL" in output
+            if self.fault == "gateway"
+            else "commit_vote" in output and '"confirmed"' in output
+        )
+        if actor == "juror-2" and trigger and not self.injected:
+            self.injected = True
+            if self.fault == "timeout":
+                raise TimeoutError("Fixture request interrupted after confirmed commitment")
+            raise openai.APIStatusError(
+                "Fixture upstream gateway unavailable",
+                response=httpx.Response(502, request=httpx.Request("POST", "http://unused")),
+                body=None,
+            )
+        result = super()._generate(messages, stop=stop, run_manager=run_manager, **kwargs)
+        # The fixture model chooses to wait for its own commitment confirmation.
+        # All mutations still travel through its private shell and participant API.
+        message = result.generations[0].message
+        for call in message.tool_calls:
+            if actor == "juror-2" and "/commitments " in call["args"]["command"]:
+                wait = """
+import json, os, sys, time, urllib.request
+operation = json.load(sys.stdin)
+for _ in range(100):
+    url = os.environ["VERACITY_URL"] + "/v1/operations/" + operation["operation_id"]
+    with urllib.request.urlopen(url) as response:
+        operation = json.load(response)
+    if operation["status"] == "confirmed":
+        print(json.dumps(operation))
+        break
+    time.sleep(0.1)
+else:
+    raise RuntimeError("Fixture commitment did not confirm")
+"""
+                call["args"]["command"] += " | python -c " + shlex.quote(wait)
+        return result
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("fault", ["gateway", "timeout"])
+async def test_transient_failure_keeps_later_native_reveal_opportunities(tmp_path, fault):
+    experiment = load_experiment(
+        ROOT / "harness/examples/discovery.toml", model_name="fixture/protocol"
+    ).model_copy(update={"episodes": 1, "opportunities_per_phase": 2})
+    model = InterruptedProtocolModel(fault=fault)
+    directory = await run_experiment(experiment, tmp_path, model=model)
+    manifest = json.loads((directory / "run.json").read_text())
+    summary = manifest["episodes"][0]
+    episode = directory / summary["episode_id"]
+    evidence = json.loads((episode / "evidence.json").read_text())
+    assert model.injected
+    assert manifest["status"] == "failed" and summary["agent_execution_failed"]
+    assert summary["outcome"] == "SETTLED_CHALLENGER"
+    assert all(juror["revealed"] for juror in evidence["episode"]["jurors"])
+    assert len(evidence["settlement"]["final_votes"]) == 3
+    records = [
+        json.loads(line) for line in (episode / "opportunities.jsonl").read_text().splitlines()
+    ]
+    mine = [record for record in records if record["actor_id"] == "juror-2"]
+    failed = next(i for i, record in enumerate(mine) if record["status"] in {"failed", "timeout"})
+    assert mine[failed]["recoverable"]
+    assert any(
+        record["status"] == "completed" and record["phase_at_start_of_opportunity"] == "REVEAL"
+        for record in mine[failed + 1 :]
+    )
 
 
 @pytest.mark.integration

@@ -116,6 +116,13 @@ Cloudflare runs instead require host-only `CLOUDFLARE_ACCOUNT_ID` and
 settings; choose `effort` or `max_tokens`, with room for completion in the total
 token budget. Model availability and provider token limits remain experiment inputs.
 
+The turn timeout stops new model invocations; an in-flight request can finish
+within a hard watchdog of `2 * turn_timeout_seconds + 90` seconds. Deadline
+yields are counted separately. Transient failures can resume at remaining
+scheduled opportunities with fresh request reservations, while error labels and
+unresolved holds remain. Set `VERACITY_RATE_DB` to one writable shared SQLite
+path for campaign workers; live Cloudflare runs validate it before setup.
+
 | Treatment | Effect |
 | --- | --- |
 | `public_messaging` | Enables or blocks the public forum at the gateway |
@@ -261,6 +268,16 @@ they provide no evidence of emergent model behaviour. The full gate also checks
 generated client drift, formatting, lint, contracts, Rust, and hooks.
 
 ## Changelog
+
+### 2026-11-03
+
+- Recover transient execution failures at remaining scheduled opportunities,
+  preserving error labels, call limits and uncertain spending holds. Stop new
+  model requests at the turn deadline and allow bounded completion; retain hard
+  cancellation evidence. Mark interrupted tool results as unknown without replay.
+- Preflight Cloudflare's shared rate store and support writable cache fallback.
+  Retain safe failure stages and HTTP status in startup/run manifests, including
+  catalog rejection. See [the error review](../docs/execution-error-review.md).
 
 ### 2026-11-01
 

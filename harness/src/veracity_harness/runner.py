@@ -39,7 +39,14 @@ from game_api.generated import (
 from game_api.local_engine import LocalEngine
 
 from . import materials
-from .agents import ChallengerModel, JurorOfferModel, ParticipantAgent, PeerModel, PublisherModel
+from .agents import (
+    ChallengerModel,
+    JurorOfferModel,
+    ParticipantAgent,
+    PeerModel,
+    PublisherModel,
+    safe_http_status,
+)
 from .config import Case, Experiment
 from .gateway import (
     CONTINUOUS_HIDDEN_FIELDS,
@@ -48,6 +55,7 @@ from .gateway import (
     Identity,
     create_loopback_relay,
 )
+from .ratelimit import default_path
 from .sandbox import URL_VARIABLE, DockerArena
 from .spending import CampaignSpending, ModelPrice, fetch_cloudflare_price, fetch_model_price
 
@@ -197,7 +205,7 @@ async def play_episode(
                 result.status,
                 result.model_calls,
             )
-            if result.status in {"failed", "timeout"}:
+            if result.status in {"failed", "timeout"} and not result.recoverable:
                 disabled.add(actor)
             if agents[actor].budget.calls >= experiment.model_for(actor).calls_per_episode:
                 disabled.add(actor)
@@ -612,6 +620,7 @@ def summarize(experiment: Experiment, evidence: dict, records: list[dict], case:
         "agent_execution_failed": any(r["status"] in {"timeout", "failed"} for r in records)
         or (experiment.creator == "scripted" and episode.content != case.reference_claim),
         "budget_exhaustions": sum(r["status"] == "budget_exhausted" for r in modelled),
+        "turn_deadline_yields": sum(r["status"] == "yielded" for r in modelled),
         "model_calls": sum(r["model_calls"] for r in modelled),
         "reasoning_calls": sum(r["reasoning_calls"] for r in modelled),
         "input_tokens": sum(r["input_tokens"] for r in modelled),
@@ -629,15 +638,10 @@ async def run_experiment(
 ) -> Path:
     if model is None and spending is None:
         raise ValueError("Live experiments require a shared campaign spending cap")
-    # Each model in the lineup is priced once from its current catalog.
+    if model is None and experiment.model.provider == "cloudflare":
+        # Fail before catalog access, container startup, or any paid reservation.
+        await asyncio.to_thread(default_path)
     prices: dict[str, ModelPrice] = {}
-    for name in sorted(experiment.model_names) if model is None else ():
-        if experiment.model.provider == "cloudflare":
-            prices[name] = await fetch_cloudflare_price(
-                name, os.environ["CLOUDFLARE_ACCOUNT_ID"], os.environ["CLOUDFLARE_API_TOKEN"]
-            )
-        else:
-            prices[name] = await fetch_model_price(name)
     run_id = f"run-{secrets.token_hex(6)}"
     directory = (await asyncio.to_thread(output.resolve)) / run_id
     directory.mkdir(mode=0o700, parents=True)
@@ -706,7 +710,9 @@ async def run_experiment(
         "status": "running",
         "config": experiment.model_dump(mode="json"),
         "episodes": [],
-        "scheduler": "concurrent-opportunity-rounds-v1",
+        "scheduler": "concurrent-opportunity-rounds-v2",
+        "failure_recovery": "transient-errors-at-remaining-scheduled-opportunities",
+        "turn_deadline_policy": "stop-new-requests-then-bounded-drain",
         "model_call_evidence_version": 2,
         "paid_request_retries": 0,
         "prices": {name: price.model_dump(mode="json") for name, price in prices.items()},
@@ -745,7 +751,18 @@ async def run_experiment(
     manifest_path = directory / "run.json"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
     LOG.info("run started run=%s directory=%s", run_id, directory)
+    stage = "model_catalog"
     try:
+        # Create the audit record first, including when catalog authentication fails.
+        for name in sorted(experiment.model_names) if model is None else ():
+            if experiment.model.provider == "cloudflare":
+                prices[name] = await fetch_cloudflare_price(
+                    name, os.environ["CLOUDFLARE_ACCOUNT_ID"], os.environ["CLOUDFLARE_API_TOKEN"]
+                )
+            else:
+                prices[name] = await fetch_model_price(name)
+            manifest["prices"][name] = prices[name].model_dump(mode="json")
+        stage = "engine_startup"
         chain = (
             {
                 # Anvil derives accounts from an unsigned 64-bit seed.
@@ -759,6 +776,7 @@ async def run_experiment(
             client = engine.client
             if client is None:
                 raise RuntimeError("Engine startup did not provide a client")
+            stage = "relay_startup"
             relay_token = secrets.token_urlsafe(32)
             relay = web.AppRunner(
                 create_loopback_relay(client.api_url, relay_token), access_log=None
@@ -768,6 +786,7 @@ async def run_experiment(
                 await web.TCPSite(relay, "0.0.0.0", 0).start()
                 relay_port = relay.addresses[0][1]
                 if continuous:
+                    stage = "history_setup"
                     if frozen.history:
                         manifest["history"] = await play_history(
                             engine, frozen, history_ids, directory / "history"
@@ -777,6 +796,7 @@ async def run_experiment(
                     engine.realtime = experiment.clock == "realtime"
                 gaps = random.Random(f"gaps-{run_id}")
                 for index in range(experiment.episodes):
+                    stage = "episode_setup"
                     if index and continuous:
                         # Other network activity separates consecutive cases: a third of a
                         # posting window to a window and a third (5-20 minutes at 900 s).
@@ -835,13 +855,16 @@ async def run_experiment(
                                 ),
                             )
                     # Container names stay run-scoped so concurrent runs never collide.
+                    stage = "sandbox_setup"
                     arena = await asyncio.to_thread(DockerArena, container_prefix, run_id)
                     records = []
                     primary_failure = None
                     try:
+                        stage = "sandbox_image"
                         await asyncio.to_thread(arena.build_image)
                         policy_dir = arena.staging / "gateway"
                         policy_dir.mkdir()
+                        stage = "gateway_startup"
                         gateway = await asyncio.to_thread(
                             arena.start_gateway,
                             policy_dir,
@@ -862,6 +885,7 @@ async def run_experiment(
                                 else experiment.actor_ids
                             )
                             for actor in active_actors:
+                                stage = "participant_setup"
                                 docs = episode_dir / "documents" / actor
                                 docs.mkdir(mode=0o755, parents=True)
                                 # Only public material is mounted into the participant.
@@ -969,6 +993,7 @@ async def run_experiment(
                             policy_path.write_text(policy.model_dump_json())
                             policy_path.chmod(0o600)
                             # Probe discovery before any provider request.
+                            stage = "gateway_readiness"
                             for agent in agents.values():
                                 for _attempt in range(20):
                                     probe = await asyncio.to_thread(
@@ -1000,13 +1025,18 @@ async def run_experiment(
                                 def read_shared(holder=holder, arena=arena):
                                     return arena.read_shared(holder)
 
+                            stage = "agent_execution"
                             if smoke:
                                 (actor,) = active_actors
                                 result = await agents[actor].act(
                                     episode_id, 1, episode_dir / f"{actor}.trace.jsonl"
                                 )
                                 records = [{"actor_id": actor, **asdict(result)}]
-                                if result.status not in {"completed", "budget_exhausted"}:
+                                if result.status not in {
+                                    "completed",
+                                    "budget_exhausted",
+                                    "yielded",
+                                }:
                                     raise RuntimeError("Live agent smoke failed")
                                 await engine.expire_episode(episode_id)
                             else:
@@ -1027,7 +1057,7 @@ async def run_experiment(
                     except BaseException as error:
                         primary_failure = type(error).__name__
                         (episode_dir / "failure.json").write_text(
-                            json.dumps({"error_type": primary_failure}) + "\n"
+                            json.dumps(failure_details(error, stage)) + "\n"
                         )
                         raise
                     finally:
@@ -1043,18 +1073,21 @@ async def run_experiment(
                                     )
                             except Exception as error:
                                 (episode_dir / "evidence-failure.json").write_text(
-                                    json.dumps({"error_type": type(error).__name__}) + "\n"
+                                    json.dumps(failure_details(error, "evidence_retention")) + "\n"
                                 )
                                 if primary_failure is None:
+                                    primary_failure = type(error).__name__
+                                    stage = "evidence_retention"
                                     raise
                         finally:
                             try:
                                 await asyncio.to_thread(arena.close)
                             except Exception as error:
                                 (episode_dir / "cleanup-failure.json").write_text(
-                                    json.dumps({"error_type": type(error).__name__}) + "\n"
+                                    json.dumps(failure_details(error, "sandbox_cleanup")) + "\n"
                                 )
                                 if primary_failure is None:
+                                    stage = "sandbox_cleanup"
                                     raise
                     summary = summarize(experiment, evidence, records, case)
                     manifest["episodes"].append(summary)
@@ -1076,10 +1109,21 @@ async def run_experiment(
             else "complete"
         )
     except BaseException as error:
-        manifest.update(status="failed", error_type=type(error).__name__)
+        details = failure_details(error, stage)
+        manifest.update(status="failed", error_type=type(error).__name__, error_details=details)
+        LOG.error("run error run=%s details=%s", run_id, json.dumps(details))
         raise
     finally:
         manifest["spending_after"] = spending.snapshot() if spending else None
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         LOG.info("run finished run=%s status=%s", run_id, manifest["status"])
     return directory
+
+
+def failure_details(error: BaseException, stage: str) -> dict:
+    details = {"stage": stage, "error_type": type(error).__name__}
+    if (status := safe_http_status(error)) is not None:
+        details["http_status"] = status
+    if type(code := getattr(error, "errno", None)) is int:
+        details["errno"] = code
+    return details

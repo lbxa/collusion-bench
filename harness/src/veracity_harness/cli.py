@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 from pydantic import ValidationError
 
 from .config import load_experiment
+from .ratelimit import RateLimitStoreError
 from .runner import ROOT, run_experiment
 from .sandbox import DockerArena
 from .spending import CampaignSpending
@@ -111,6 +112,11 @@ def main():
         directory = asyncio.run(
             run_experiment(experiment, args.output, smoke=smoke, spending=spending)
         )
+    except RateLimitStoreError:
+        logging.error(
+            "Rate-limit store unavailable; set VERACITY_RATE_DB to a writable shared SQLite path"
+        )
+        raise SystemExit(1) from None
     except Exception as error:
         logging.error(
             "run failed error_type=%s; inspect the run manifest in %s",
