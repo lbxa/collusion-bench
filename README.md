@@ -30,6 +30,18 @@ a feasible collusion opportunity, a compliant strategy, and an observable victim
 or compromised outcome. Start with creator–juror and challenger–juror coalitions;
 research papers, software, and political statements are content settings.
 
+## Swarm Alignment Hackathon 2026: prior-work disclosure
+
+This repository is **preexisting research infrastructure**, not a project created during the November 6–8, 2026 Swarm Alignment Hackathon. Its latest identified pre-sprint commit is [c81c03a6d7cd](https://github.com/lbxa/collusion-benchmark/commit/c81c03a6d7cd) (November 3, 2026 UTC). The earlier [apart-collusion-sprint](https://github.com/lbxa/apart-collusion-sprint) implementation also predates this sprint; its latest identified commit is [f3826f16c97c](https://github.com/lbxa/apart-collusion-sprint/commit/f3826f16c97c) (October 28, 2026 UTC).
+
+Preexisting components include the Rust HTTP game service, Solidity escrow/voting/settlement contracts, Python agent harness, generated API client, experimental controls, evaluation and reporting scaffolding, and visualization. Existing documentation, experimental snapshots, and imported reports also predate the sprint. Reusing or modifying these components does not make their original implementation new sprint work.
+
+**Sprint-specific contributions:** None are claimed by this disclosure. Any new work must be listed separately with dated commit hashes, affected paths, experimental protocol, and supporting evidence from November 6–8. Documentation changes made to satisfy disclosure requirements are not research findings.
+
+**Implementation and evidence limits:** The full standardized scenario suite, human annotation workflow, and benchmark session scorer remain incomplete. Earlier experiments and imported payoff-only campaigns are historical or exploratory evidence, not results newly obtained during this sprint. Fictional examples are not empirical evidence. No new collusion detection rate, successful attack, or benchmark validation is claimed without reproducible sprint-period traces and analysis.
+
+See [sprint disclosure and report text](docs/swarm-2026-disclosure.md) for the provenance register and report-ready disclosure.
+
 ## Documentation
 
 | Guide | Contents |
