@@ -1,33 +1,44 @@
 # Venue and submission record
 
-**Project target: Apart AI Collusion Research Sprint, October 23–25, 2026.**
-The user selected this sprint as the target. The separate
+**Project target: Apart AI x Epistemics Research Sprint, November 13–15, 2026.**
+The separate
 [agentic manuscript](../../report/agentic/main.tex) is an internal results draft;
 the older baseline report remains unchanged. A submission-ready revision must
-meet the verified requirements below.
+meet the verified requirements below. Existing manuscripts and October campaign
+results are prior work; they have not been revised into new epistemics results.
+See the [current sprint disclosure](../epistemics-2026-disclosure.md).
 
-## Apart sprint requirements, checked 2026-10-26
+## Apart sprint requirements, checked 2026-11-14
 
-The [official guidelines](https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25)
+The [official guidelines](https://apartresearch.com/sprints/ai-x-epistemics-research-sprint-2026-11-13-to-2026-11-15)
 require a PDF using the linked official template, at most eight main-text pages
 excluding references and appendices, a 150–250-word abstract, author names and
 affiliations, and a Limitations and Dual-Use / Ethical Considerations appendix.
-Methods should identify models, prompts, environment, seeds and metrics; results
-should include baselines, seeds, variability and a positive control. Existing
-work and work completed during the sprint must be distinguished.
+The report also needs a project title. Four to eight pages is recommended, not
+a minimum. Methods should document models, prompts, datasets, rubrics and metrics
+well enough to replicate; results should report variance and baselines. The
+required appendix must cover what the results establish, manipulation risks,
+and personal-data handling. Existing work and work completed during the sprint
+must be distinguished in both README and report.
 
-The official template link points to [this Google document](https://docs.google.com/document/d/1Y5wd3VRbXU5N08BvAGiJUQTaWbMCSPjhzXsR-ozuehg/copy?usp=sharing).
-Its text was read through the connected Google Drive account after the browser
-copy link redirected to sign-in. The template recommends four pages and allows
-adapting its section structure: Introduction, Related Work, Methods, Results,
-Discussion and Limitations, Conclusion, Code and Data, References, and an LLM
-Usage Statement. The live guideline's eight-page cap remains controlling.
-The template was last modified 2026-10-22. Its visual layout has not been
-inspected; the current `arxiv.sty` is not verified as a layout substitute.
+The current official template link points to [this Google document](https://docs.google.com/document/d/17b3JWki-ZkaqdmqGI5d0gof-HwlGuWU9Mc1_klNZXKs/copy?usp=sharing).
+Its contents and visual
+layout have not been inspected for this update; the existing article layout and
+`arxiv.sty` are not verified substitutes. Use the Guidelines tab's template,
+which the FAQ says takes precedence over older acceptance-email templates.
 
-The published deadline is 2026-10-25 at 23:59 Anywhere on Earth (UTC−12), which
-is 2026-10-26 at 07:59 in America/New_York (EDT). Submission is not authorized
-by the research task and has not been attempted.
+The published deadline is **2026-11-15 at 23:59 Anywhere on Earth (UTC−12)**,
+which is **2026-11-16 at 11:59 UTC / 06:59 America/New_York (EST)**.
+Submit a PDF through the official submission form on the sprint page; a public
+GitHub repository and a 3–5 minute demo video are optional. Corrections use the
+same project title and must arrive before the deadline. No submission has been attempted.
+
+The four tracks are Model Epistemics & Decision-Making Evals, Trust
+Infrastructure, Epistemic Products, and Open Track. Veracity's claim verification,
+audit trails, and manipulation experiments connect most directly to Trust
+Infrastructure, with a possible evaluation angle in the first track. Track
+selection remains open; all tracks share the same judging rubric: impact
+potential and innovation, execution quality, and presentation and clarity.
 
 ## Current report layouts
 
@@ -66,23 +77,23 @@ reason. Keep the source URL and the date checked beside each external rule.
 
 | Field | Project value |
 | --- | --- |
-| Venue, year, track, and paper type | Apart AI Collusion Research Sprint 2026, research report |
+| Venue, year, track, and paper type | Apart AI x Epistemics Research Sprint 2026, research report; track not yet selected |
 | Document stage: internal / submission / rebuttal / camera-ready | Internal results draft |
-| Official author guide and policy URLs; date checked | Official sprint URL above; 2026-10-26 |
-| Official template URL, release/version, download date, and checksum or committed revision | Linked Google document above; text inspected, modified 2026-10-22; visual compliance unresolved |
+| Official author guide and policy URLs; date checked | Official sprint URL above; 2026-11-14 |
+| Official template URL, release/version, download date, and checksum or committed revision | Current Google document linked above; link checked 2026-11-14; contents, version and visual compliance unverified |
 | Local report root and main `.tex` file | `report/agentic/main.tex` |
 | Required class/style and review/final switches | Official template required; current article draft not certified equivalent |
 | Compiler, TeX distribution, bibliography backend, exact build command | pdfLaTeX, TeX Live 2025, latexmk 4.86a; inline bibliography; `make -C report agentic` |
 | Main-text page limit and what counts toward it | Eight main-text pages excluding references/appendices; abstract 150–250 words |
 | References, appendices, supplementary material: placement and limits | References then required limitations/ethics appendix; no separate verified supplement cap |
 | Paper size, margins, columns, fonts, and figure widths | Current draft: Letter, 1in margins, one column, 11pt New TX, 6.5in figure; official visual requirements unresolved |
-| Citation and bibliography style; self-citation rules | UNSET |
+| Citation and bibliography style; self-citation rules | FAQ allows any consistent citation style; special self-citation rules unverified |
 | Anonymity: manuscript, PDF metadata, code/data links, supplements | UNSET |
-| Required ethics, reproducibility, limitations, and AI-use disclosures | Required limitations/dual-use/ethics appendix present; template includes LLM usage statement removed at user request; final author review open |
-| Required data/code artifacts and accessibility requirements | UNSET |
-| Submission files, size limits, portal, deadline, and stated timezone | PDF; deadline above; no submission attempted; remaining portal/size details unverified |
+| Required ethics, reproducibility, limitations, and AI-use disclosures | Limitations/dual-use/ethics appendix required; prior-work disclosure required; AI tools allowed with authors responsible for accuracy; current template-specific disclosures unverified |
+| Required data/code artifacts and accessibility requirements | Public GitHub repository and 3–5 minute video optional; methods must support replication |
+| Submission files, size limits, portal, deadline, and stated timezone | PDF via official form on sprint page; November 15, 23:59 AoE; file size limit unverified; no submission attempted |
 | Camera-ready changes and publication/license requirements | UNSET |
-| Last policy check, checker, and unresolved questions | 2026-10-26, Codex; authors Lucas Barbosa, Stefan Gazana, Sravika Linga, Muskaan Kumar, Jake Fogel; affiliations, visual layout and final disclosures open |
+| Last policy check, checker, and unresolved questions | 2026-11-14, Codex; confirm current authors/affiliations, track, template layout and final disclosures |
 
 Official rules for the chosen venue and stage take precedence over house
 formatting. Preserve scientific accuracy and disclose limitations when fitting

@@ -362,8 +362,8 @@ generated client drift, formatting, lint, contracts, Rust, and hooks.
 
 - Add the verification-shortcut design (`research/market/verify.toml`), following
   Shi et al. (2026), where 94% of trajectories colluded once the honest protocol
-  could not be completed and the shortcut was mutually beneficial, and the Apart
-  sprint's finding that impossible tasks drew help-seeking only when peers were
+  could not be completed and the shortcut was mutually beneficial, and
+  *It Takes Two Stuck Agents*' finding that impossible tasks drew help-seeking only when peers were
   stuck too. Each case is a batch of 60 vouchers in a gateway records service
   (`lookup_allowance = 25` distinct lookups per account per case, audited with
   record ids). `standard.md` requires every juror to inspect every voucher

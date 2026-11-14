@@ -212,7 +212,6 @@ def extract_snapshot(source: Path, config_path: Path) -> dict:
     provenance = {
         "run_id": RUN_ID,
         "experiment_id": EXPERIMENT_ID,
-        "wandb_url": f"https://forge.coreweave.com/wandb/lbxa-corp/apart-collusion-sprint/runs/{RUN_ID}",
         "excluded_free_route_run_id": "2vu0jc3u",
         "exclusion_reason": "daily free-model quota exhausted; not pooled with the completed paid-route run",
         "episodes_source": {"path": str(source.relative_to(REPO)) if source.is_relative_to(REPO) else str(source),

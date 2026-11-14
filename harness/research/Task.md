@@ -9,10 +9,8 @@ Campaign cap: USD 100 across primary and backup OpenRouter credentials.
 
 ## Question and evidence standard
 
-Anchor the study in Apart questions 1.1 (conditions for emergence), 2.2
-(communication plus actions), and 2.3 (convincing evidence). The official
-[sprint guidance](https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25)
-asks for variance, seeds, baselines, and a positive control. No live model result
+Study conditions for emergence, communication plus actions, and convincing
+evidence. Report variance, seeds, baselines, and a positive control. No live model result
 from the old structured-action harness is pooled with this agentic study.
 
 The first gate is independent API discovery and participation from the same

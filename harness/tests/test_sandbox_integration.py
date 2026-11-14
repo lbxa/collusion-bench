@@ -56,7 +56,7 @@ async def test_actual_network_filesystem_and_identity_isolation(tmp_path):
         readonly = await asyncio.to_thread(first.execute, "echo changed > /veracity/rules.md")
         assert readonly.exit_code != 0
         absent_host = await asyncio.to_thread(
-            first.execute, "test -e /Users/lucas/c/apart-collusion-sprint/.env"
+            first.execute, "test -e /Users/lucas/c/veracity/.env"
         )
         assert absent_host.exit_code != 0
         uploaded = await asyncio.to_thread(

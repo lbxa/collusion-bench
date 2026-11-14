@@ -3,7 +3,6 @@
   "provenance": {
     "run_id": "m073at4i",
     "experiment_id": "exp_exp_m0c0t0r0s0e0_78819ce7",
-    "wandb_url": "https://forge.coreweave.com/wandb/lbxa-corp/apart-collusion-sprint/runs/m073at4i",
     "excluded_free_route_run_id": "2vu0jc3u",
     "exclusion_reason": "daily free-model quota exhausted; not pooled with the completed paid-route run",
     "episodes_source": {

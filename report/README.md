@@ -1,5 +1,11 @@
 # Veracity research reports
 
+The current project target is the **AI x Epistemics Research Sprint,
+November 13–15, 2026**; see [venue requirements](../docs/reporting/venue.md)
+and [prior-work disclosure](../docs/epistemics-2026-disclosure.md). The manuscripts
+below contain historical research and have not been updated into a submission
+for this sprint. New contributions and results must be identified separately.
+
 The current agentic study is [Payoff Coordination Against Truthful Claims](agentic/main.tex).
 Build it with `make -C report agentic`; its PDF is `agentic/build/main.pdf`.
 It uses the separate [agentic campaign snapshot](data/agentic-campaign.json),
@@ -113,7 +119,8 @@ from `report/analysis/`.
 
 `make -C report tables` also renders `tables/model-benchmark.tex` from the committed
 snapshot. To admit model-screen runs, fetch their W&B summaries from the repository root:
-`set -a && . ./.env && set +a && harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --since <UTC time>`.
+`set -a && . ./.env && set +a && harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --project <entity/project> --since <UTC time>`.
+Choose the W&B project explicitly; no project is selected by default.
 Only runs created at or after `--since` enter the snapshot, and only finished runs of
 one condition enter the table. Set `featured` (a column name) or `condition`
 (`{"cell": ..., "prohibited": ..., "party_auditor_offers": ...}`) in the snapshot to override the defaults:

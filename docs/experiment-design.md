@@ -291,4 +291,4 @@ the calibrated rubric-v1 judge; and the coalition gain index in the scorer.
 - METR, *OpenAI / Hugging Face incident investigation*, 2026.
 - Anthropic, *Petri* (Parallel Exploration Tool for Risky Interactions), open-source auditing tool, 2025.
 - Zhong, Raghunathan and Carlini, *ImpossibleBench: Measuring LLMs' Propensity of Exploiting Test Cases*, ICLR 2026 (arXiv 2510.20270).
-- *It Takes Two Stuck Agents*, AI Collusion Research Sprint, October 2026 (github.com/Alkur123/apart-collusion-impossible-tasks).
+- *It Takes Two Stuck Agents*, October 2026.
