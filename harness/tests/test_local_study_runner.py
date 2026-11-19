@@ -36,7 +36,7 @@ def inputs(tmp_path):
     tracking = tmp_path / "tracking.env"
     tracking.write_text(
         "WANDB_API_KEY=tracking-secret-fixture\nWANDB_ENTITY=lbxa-corp\n"
-        "WANDB_PROJECT=apart-collusion-sprint\nWANDB_BASE_URL=https://api.wandb.ai\n"
+        "WANDB_PROJECT=collusion-bench\nWANDB_BASE_URL=https://api.wandb.ai\n"
         "CLOUDFLARE_API_TOKEN=wrong-tracking-token\nIGNORED_TRACKING=private\n"
     )
     plan = tmp_path / "plan.json"
@@ -115,7 +115,7 @@ def test_launch_scopes_credentials_and_default_budget(loaded, inputs, monkeypatc
     assert environment["CLOUDFLARE_API_TOKEN"] == "explicit-process-token"
     assert environment["CLOUDFLARE_ACCOUNT_ID"] == "account-fixture"
     assert environment["WANDB_API_KEY"] == "tracking-secret-fixture"
-    assert environment["WANDB_PROJECT"] == "apart-collusion-sprint"
+    assert environment["WANDB_PROJECT"] == "collusion-bench"
     assert "WANDB_RUN_ID" not in environment
     assert "IGNORED_PROVIDER" not in environment and "IGNORED_TRACKING" not in environment
     metadata = json.loads((Path(inputs[11]) / "local-run.json").read_text())
@@ -273,7 +273,7 @@ def test_caffeinate_is_owned_by_handle_and_cleaned_up(loaded, inputs, monkeypatc
 
 
 def test_tracking_key_must_come_from_selected_file(loaded, inputs, monkeypatch, capsys):
-    Path(inputs[7]).write_text("WANDB_PROJECT=apart-collusion-sprint\n")
+    Path(inputs[7]).write_text("WANDB_PROJECT=collusion-bench\n")
     monkeypatch.setenv("WANDB_API_KEY", "unrelated-epistemics-key")
     monkeypatch.setattr(loaded.subprocess, "Popen", lambda *a, **kw: pytest.fail("started child"))
     assert loaded.main(inputs) == 1

@@ -16,11 +16,15 @@ function readPinned(source: { path: string; sha256: string }) {
   return bytes;
 }
 
-const projection = projectResearch(JSON.parse(readPinned(sources.current).toString()), JSON.parse(readPinned(sources.historical).toString()));
+const projection = projectResearch(
+  JSON.parse(readPinned(sources.current).toString()),
+  JSON.parse(readPinned(sources.historical).toString()),
+  JSON.parse(readPinned(sources.swarm).toString()),
+);
 const data = {
   ...projection,
   asOf: sources.asOf,
-  provenance: { current: sources.current, historical: sources.historical },
+  provenance: { current: sources.current, historical: sources.historical, swarm: sources.swarm },
 };
 const serialized = JSON.stringify(data, null, 2) + "\n";
 for (const file of ["src/data/research.json", "public/data/research.json"]) {

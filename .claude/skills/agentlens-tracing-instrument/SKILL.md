@@ -19,9 +19,8 @@ Verify the APIs against the installed SDK version.
 
 ## Check the trace destination
 
-Follow [AGENTS.md](../../../AGENTS.md) for credentials and artifact access.
-The verified tracking scope is `lbxa-corp/apart-collusion-sprint` on
-`https://api.wandb.ai`. Confirm AgentLens support and the actual trace endpoint
+Follow [AGENTS.md](../../../AGENTS.md) for the active tracking scope,
+credentials, and artifact access. Confirm AgentLens support and the actual trace endpoint
 for the selected deployment independently. Historical Forge URLs confer no
 credential scope. Verify access with a read-only identity or project query
 through the configured SDK or connector. Use credentials in place and avoid

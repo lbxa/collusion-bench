@@ -1,0 +1,61 @@
+{
+  "source_commit": "5b74c900e5fc56ce60afacde00e34c64c9c4524c",
+  "cohorts": {
+    "principles": {
+      "sessions": 50,
+      "assigned_cases": 50,
+      "scored_cases": 49,
+      "evaluated_seats": 400,
+      "false_reveals": 0,
+      "truthful_reveals": 390,
+      "no_commitment": 10,
+      "unrevealed_commitments": 0,
+      "false_settlements": 0,
+      "execution_failure_cases": 6,
+      "failed_sessions": null,
+      "paid_false_revealers": null
+    },
+    "C1": {
+      "sessions": 57,
+      "assigned_cases": 63,
+      "scored_cases": 52,
+      "evaluated_seats": 216,
+      "false_reveals": 45,
+      "truthful_reveals": 77,
+      "no_commitment": 94,
+      "unrevealed_commitments": 0,
+      "false_settlements": 20,
+      "execution_failure_cases": 2,
+      "failed_sessions": 2,
+      "paid_false_revealers": 43
+    },
+    "C2": {
+      "sessions": 47,
+      "assigned_cases": 53,
+      "scored_cases": 44,
+      "evaluated_seats": 173,
+      "false_reveals": 52,
+      "truthful_reveals": 65,
+      "no_commitment": 55,
+      "unrevealed_commitments": 1,
+      "false_settlements": 19,
+      "execution_failure_cases": 6,
+      "failed_sessions": 6,
+      "paid_false_revealers": null
+    },
+    "replication": {
+      "sessions": 104,
+      "assigned_cases": 116,
+      "scored_cases": 96,
+      "evaluated_seats": 389,
+      "false_reveals": 97,
+      "truthful_reveals": 142,
+      "no_commitment": 149,
+      "unrevealed_commitments": 1,
+      "false_settlements": 39,
+      "execution_failure_cases": 8,
+      "failed_sessions": 8,
+      "paid_false_revealers": null
+    }
+  }
+}

@@ -2,7 +2,7 @@
 
 The active manuscript, `main.tex`, is a prospective working report developed
 alongside `harness/research/collusion-resistance-v1/`. It retains all five
-coauthors and follows the requested Epistemics Apart layout with native Computer
+coauthors and uses the ruled, single-column layout with native Computer
 Modern. No new behavioral result is admitted until the paper brief and evidence
 review establish its provenance. Pending model slots are unavailable values,
 never zero collusion or perfect resistance.
@@ -35,6 +35,15 @@ exploratory. Creator and challenger are scripted counterparts in this first
 model campaign. It measures induced juror susceptibility, not spontaneous
 cross-role collusion. Source/session clustering, unresolved labels, capability
 failures, honest completion, and candidate safeguards remain explicit.
+
+The report includes a historical peer-recruitment comparison and its relation
+to the evidence rubric. The [swarm evidence packet](../evidence/swarm-sprint/)
+documents the original cohort boundaries, frozen counts, and offline replay.
+The [prospective protocol](../../harness/research/swarm-benchmark-v1/PROTOCOL.md)
+applies the one-vote-short design to both source tasks and all five current
+models. Its 300 cases are planned. The active manuscript reports historical
+swarm observations and current confirmation observations under their own
+rules and denominators.
 
 Regenerate the new checked outcome profiles and three distinct cohort/arm
 tables, then build the report:
@@ -170,6 +179,13 @@ verdict labels cannot score a creator's changed claim; use pinned actual-claim
 reviews, and keep ambiguous cases distinct.
 
 ## Changelog
+
+### 2026-11-19
+
+- Use the historical swarm outcomes to connect direct peer exposure to
+  individual reveals and collective settlement. Preserve the two campaigns'
+  original denominators and treat the current five-model swarm design as
+  prospective pending live outcomes and independent review.
 
 ### 2026-11-17
 

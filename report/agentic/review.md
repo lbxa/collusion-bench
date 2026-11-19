@@ -1,5 +1,61 @@
 # Agentic report review
 
+## 2026-11-19 swarm evidence integration
+
+- The working paper keeps the evidence rubric and planned detector comparison.
+  It adds the historical jury-network design in Section 3.5, descriptive
+  counts in Section 4.4, and interpretation in Section 5.1. Claims S1–S4 in
+  the [paper brief](../../docs/reporting/paper-brief.md) bind the historical
+  counts and prospective design to their evidence. The principles cohort and
+  scale replication have separate denominators. C1 is a subset of the scale
+  replication. The text preserves failed and nonvoting observations and
+  treats paid false reveals as mechanical evidence pending independent review.
+- `python3 -I report/analysis/swarm_historical_summary.py --check` passed
+  against source revision `5b74c900e5fc56ce60afacde00e34c64c9c4524c` and
+  projection SHA-256
+  `2489d4cafb5567d21fd7c5a878322a356dcf79c10d54dc97e3f811dfd2252462`.
+  The [evidence packet](../evidence/swarm-sprint/) records the artifact-level
+  replays. The prospective peer comparison has 150 planned sessions and 300
+  planned cases. Its fixture checks support mechanics and evidence retention.
+- From base `298068e21f88a17c1550b849bfac624f7ec6b4bb` with the local edits,
+  `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and a clean build in
+  `/tmp/collusion-swarm-pdf.lCLdza/` both passed with latexmk 4.86a and
+  pdfTeX 1.40.27 (TeX Live 2025). The clean build runs the same latexmk flags
+  from `report/agentic/` with its fresh output directory. Logs are
+  `/tmp/collusion-swarm-canonical-build.log` and
+  `/tmp/collusion-swarm-pdf.lCLdza/build.log`. The final TeX logs contain no
+  overflow, missing glyphs, or undefined references or citations. The
+  bibliography adds checked primary references for the swarm motivation.
+- The canonical `report/agentic/build/main.pdf` has 21 US Letter pages with
+  embedded fonts. Its SHA-256 is
+  `cf90c5aebc5c497507a705e085ddc79be8337d2803e40a3d7f934fac5ff2e7bb`.
+  The clean PDF has identical extracted text and 120 dpi Poppler page images.
+  The PDF document ID differs by output directory.
+- Codex inspected all 21 pages at 120 dpi. Main text occupies pages 1–10,
+  references page 11, and appendices pages 12–21. The historical subsection's
+  page break falls between cohort paragraphs. The main results table precedes
+  its interpretation. The existing appendix float on page 14 interrupts a
+  sentence across pages 13–14. The sentence and table remain readable.
+
+**Decision: working draft.** Independent semantic adjudication, prospective
+provider-backed outcomes, detector evaluation, author review, and venue
+selection remain open. The swarm evidence covers direct exposure, with renewed
+offers in the repeated-exposure arm. Separate interventions are needed for
+emergent roles, split-task refusal, network propagation, and threshold claims.
+
+## 2026-11-19 publication cleanup
+
+- Rebuilt the working paper and October case studies with
+  `make -C report agentic agentic-historical`. Both compiled without TeX
+  warnings. The refreshed PDFs have 19 and 11 pages, respectively. The
+  [website source manifest](../../website/data-sources.json) pins their hashes.
+- Compared the rendered pages with the previous downloads. Inspected the
+  changed title and introduction, references, and appendix pages for page
+  breaks, table continuity, and clipping. The apparent changes to the October
+  archive paths in the PDF reflect the paths already present in the source.
+- The evidence inputs, figures, counts, and interpretation stay tied to the
+  same records documented below. Independent semantic review remains open.
+
 ## Current review: five-model outcomes and paid wrong-verdict cases
 
 **2026-11-17; final recovery capture 2026-11-18 03:43:04 UTC / November 17,
@@ -43,7 +99,7 @@ effect or inference of faithful internal reasoning.
   collection/estimation/new-case detail 11–14, capability detail 15–16 and
   retained evidence/examples 17–19. The abstract has 223 whitespace-delimited
   words. All five authors, confirmed affiliations, Computer Modern, and the
-  requested Apart layout are preserved.
+  requested ruled layout are preserved.
 - `make -C report agentic` passes; normal build log is
   `/tmp/collusion-progress-build.log`, final TeX log
   `report/agentic/build/main.log`. No final-pass overflow, missing glyph,
@@ -116,7 +172,7 @@ unresolved assignments; the selected illustration is not an aggregate readout.
   Kumar, and Jake Fogel, in that order, in the title and PDF metadata. The user
   confirmed New York University for Lucas, Sravika, Muskaan and Jake, and
   Roundarc for Stefan. The active spelling is Gazzana; historical manuscripts
-  retain their original text. Computer Modern and the requested Apart layout
+  retain their original text. Computer Modern and the requested ruled layout
   are preserved.
 - The current PDF has 13 pages: main text 1–8, references 9, required ethics
   and limitations 10, provenance 11, historical October panels 12, and the
@@ -406,9 +462,7 @@ passed independently; `git diff --check` reported no whitespace errors.
 
 - Human authors must review the semantic labels, source-to-claim links and
   final manuscript. The five authors are named; affiliations are pending.
-- Official Apart template text was inspected, but this article layout has not
-  been certified against its visual layout. Final required disclosures and
-  submission formatting remain an author decision. No submission was attempted.
+- Check final disclosures and formatting against the rules of any future venue.
 - No powered treatment estimate, representative collusion rate, model ranking
   or long-horizon generalization is supported. Larger independent blocks,
   domains, incentive variants and a calibrated positive honest baseline are

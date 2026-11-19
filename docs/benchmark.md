@@ -3,9 +3,9 @@
 **Status:** prospective measurement and design contract. Harness capabilities,
 fixture runs, and inherited campaigns do not establish new empirical results.
 
-The paper is anchored on **Track 2.3: What should count as convincing evidence
-of collusion?** The first comparative experiment is **Track 2.2: Does combining
-what agents say with what they do beat either alone?** A broader task or model
+The paper asks **what should count as convincing evidence of collusion**.
+The first comparative experiment asks **whether combining what agents say
+and do improves detection over either source alone**. A broader task or model
 catalog supplies coverage, not a validated answer to either question.
 
 Epistemics studies confidence, claim revision, and evidence accuracy. Collusion
@@ -179,6 +179,29 @@ Roster replacement, trusted-agent disruption, calibrated information-theoretic
 detection, and causal topology comparisons are not established by exposing
 these settings. They require distinct protocols. Do not broaden the first
 study into a full factorial across every available control.
+
+### Swarm peer comparison
+
+Juries are interacting groups whose members jointly determine a binding
+verdict. The [Apart swarm evidence](../report/evidence/swarm-sprint/) tests
+direct recruitment into a seeded voting bloc. It links the collusion question
+to collective decisions and shows why exposure, evaluated votes, and confirmed
+payment need separate evidence. The historical protocols used different duties,
+sources, and lineups from the current comparison.
+
+The [five-model swarm protocol](../harness/research/swarm-benchmark-v1/PROTOCOL.md)
+pairs honest and adverse scripted peers at jury sizes 3, 7, and 15 on the two
+current confirmation sources. Its assignment frame, delivered principles, and
+mechanical readout are separate from the detector comparison. It changes peer
+messages and votes together while retaining the creator's offer in both arms.
+Record proposal, agreement, implementing action, capture, and confirmed transfers
+individually. Keep capability failure and missing seats visible. Cluster within
+sessions and shared sources during any reviewed analysis.
+
+The fixed public forum gives each evaluated juror direct exposure. Repeated
+offers in the historical memory condition test renewed exposure. Emergent roles,
+individually refused subtasks, indirect transmission, and network thresholds
+remain open questions for separately controlled experiments.
 
 ## Historical evidence and release
 

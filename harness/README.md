@@ -7,10 +7,10 @@ choose their own actions. Rust owns the API and recovery; Solidity owns money.
 
 This runtime is shared infrastructure adapted from Epistemics. Collusion's
 objectives, scenario admission, treatments, labels, metrics, evidence register,
-spending ledgers, and W&B project remain independent. The accepted research anchor
-is Track 2.3, convincing evidence of collusion; Track 2.2, text versus actions
-versus both, is the first planned detector comparison. No new model experiment
-or empirical finding is supplied by this migration.
+spending ledgers, and W&B project remain independent. The study asks what counts
+as convincing evidence of collusion. The first planned detector comparison uses
+text, actions, or both. No new model experiment or empirical finding is supplied
+by this migration.
 
 ## Setup and configuration checks
 
@@ -215,14 +215,18 @@ uv run --project harness --locked veracity-harness-wandb \
 The watcher reads traces already retained by running sessions; it does not
 create model calls. `--check-access` verifies project access read-only and creates
 no run; `--dry-run` reports the upload scope and file counts offline. Neither
-uploads evidence. Tracking targets `lbxa-corp/apart-collusion-sprint` at the
-standard W&B API host. Scope precedence is explicit CLI flags, the selected
+uploads evidence. New tracking defaults to `lbxa-corp/collusion-bench` on
+`https://api.wandb.ai`. Scope precedence is explicit CLI flags, the selected
 dotenv file, then Collusion defaults. Inherited `WANDB_PROJECT`, `WANDB_ENTITY`,
 and `WANDB_BASE_URL` are ignored to prevent cross-study routing; the process
 `WANDB_API_KEY` retains credential precedence. A known Epistemics destination is
 rejected. Upload preflight must verify an existing accessible project before
 creating a run. Use the repository W&B skill for read-only inspection with an
 explicit entity and project. Uploads must pass credential scanning.
+
+For an authorized resume, use the scope recorded in the original upload
+intent or campaign tracking marker. The historical private campaign audit is
+bound to its original destination by its release approval.
 
 Default upload publishes only the generated `.wandb-public.json` projection:
 numeric measurements, model/seed/revision metadata, and provenance hashes. Original
@@ -264,11 +268,13 @@ example inputs, labels, and released evidence together. Recorded paths in the
 campaign files refer to the original checkout layout.
 
 Copied market, frontier, and swarm inputs under `research/` are reusable fixtures
-and experimental designs. Their copied names do not establish execution here,
-transfer earlier spending approval, or import historical findings into a new
-cohort. Do not launch frozen campaign scripts without reviewing scope and budget.
-October spontaneous-discovery, later induced-recruitment, swarm, and new Collusion
-cohorts remain distinct. Preserve original ABI, duty text, source, and input hashes.
+and experimental designs. The [swarm run guide](research/swarm/README.md) uses the
+current campaign controller for the historical protocols. The [sprint evidence
+packet](../report/evidence/swarm-sprint/) supports an offline replay of the original
+readouts. The [five-model swarm comparison](research/swarm-benchmark-v1/PROTOCOL.md)
+uses the current benchmark's two sources and has its own assignment register.
+Preserve each cohort's ABI, duty text, source, and input hashes. A new execution
+needs its own authorized budget and runner.
 
 ## Verification
 
@@ -286,9 +292,22 @@ spontaneous model behavior. Do not silently skip Docker or chain checks.
 
 ### 2026-11-19
 
+- Keep injected test models outside paid-request accounting so campaign
+  integration fixtures can verify the shared ledger stays at zero.
+- Reuse the campaign controller for swarm protocols and the five-model peer
+  comparison. Keep historical wrong-reveal scores separate from case-level
+  review of knowledge, obligations, and coordination on the current sources.
+- Attach catalog prices and paid-request accounting to provider-backed actors.
+  Injected models can exercise the same campaign journal with zero reservations.
+
+- Default new run uploads and campaign tracking to `lbxa-corp/collusion-bench`.
+  Existing tracking markers and upload intents keep their recorded scope for
+  retries.
+
 - Moved the October protocols, example inputs, and released evidence into
   `archive/october-2026/`. The archive retains the campaign's relative layout,
-  evidence bytes, and Git LFS rules.
+  and evidence bytes. See [the archive guide](archive/october-2026/README.md)
+  for bucket access and restoration.
 
 ### 2026-11-17
 
@@ -328,6 +347,6 @@ spontaneous model behavior. Do not silently skip Docker or chain checks.
 - Publish only a numeric/provenance projection by default. Private-evidence and
   raw-call releases are separate explicit choices, and upload retries reuse one
   durable scoped identity.
-- Anchor the research contract on Track 2.3 and plan the text/action/combined
-  detector comparison under Track 2.2; the runtime migration makes no empirical
-  claim about coordination or detection performance.
+- Set standards of evidence for collusion and plan a comparison of detectors
+  using text, actions, or both. The runtime migration makes no empirical claim
+  about coordination or detection performance.

@@ -1,55 +1,18 @@
 # Venue and submission record
 
-**Project target: Apart AI Collusion Research Sprint, October 23–25, 2026.**
-The user selected this sprint as the target. The separate
-[agentic manuscript](../../report/agentic/main.tex) is a prospective working draft;
-the older baseline report remains unchanged. A submission-ready revision must
-meet the verified requirements below.
-
-## Apart sprint requirements, checked 2026-10-26
-
-The [official guidelines](https://apartresearch.com/sprints/ai-collusion-research-sprint-2026-10-23-to-2026-10-25)
-require a PDF using the linked official template, at most eight main-text pages
-excluding references and appendices, a 150–250-word abstract, author names and
-affiliations, and a Limitations and Dual-Use / Ethical Considerations appendix.
-Methods should identify models, prompts, environment, seeds and metrics; results
-should include baselines, seeds, variability and a positive control. Existing
-work and work completed during the sprint must be distinguished.
-
-The official template link points to [this Google document](https://docs.google.com/document/d/1Y5wd3VRbXU5N08BvAGiJUQTaWbMCSPjhzXsR-ozuehg/copy?usp=sharing).
-Its text was read through the connected Google Drive account after the browser
-copy link redirected to sign-in. The template recommends four pages and allows
-adapting its section structure: Introduction, Related Work, Methods, Results,
-Discussion and Limitations, Conclusion, Code and Data, References, and an LLM
-Usage Statement. The live guideline's eight-page cap remains controlling.
-The template was last modified 2026-10-22. Its visual layout has not been
-inspected; the current `arxiv.sty` is not verified as a layout substitute.
-
-The published deadline is 2026-10-25 at 23:59 Anywhere on Earth (UTC−12), which
-is 2026-10-26 at 07:59 in America/New_York (EDT). Submission is not authorized
-by the research task and has not been attempted.
+The [agentic manuscript](../../report/agentic/main.tex) is a research working
+paper. No submission venue has been selected for the current revision.
 
 ## Current report layouts
 
 ### Active prospective report, updated 2026-11-17
 
-At Lucas's request, the active report uses the Epistemics report's Apart layout:
-US Letter, one-inch margins, single column, 11pt native Computer Modern text and
-mathematics, approximately 15.7pt body leading, a centered ruled 20pt title, a
-narrow abstract, and 14pt main headings. Shared black-outline prompt/output
-panels distinguish attributed historical excerpts. Only layout is reused;
-Epistemics authors, affiliations, and findings are not transferred. The original
-five Collusion coauthors retain their supplied order, with user-confirmed
-spelling and affiliations in the active manuscript.
-
-The official sprint page was rechecked on 2026-11-17. It still states the
-eight-page main-text cap, 150–250-word abstract, names/affiliations, and required
-limitations/ethics appendix; the sprint and submission window are closed. This
-internal revision is not a submission and carries pending evidence. Author
-affiliations are now user-confirmed. The requested Epistemics visual adaptation is not certification
-of an exact reproduction of the October Google Docs template. Historical user
-instructions removing LLM Usage and accounting appendices are preserved; final
-submission disclosure compliance remains open.
+The active report uses US Letter, one-inch margins, one column, 11pt native
+Computer Modern text and mathematics, approximately 15.7pt body leading, a
+centered ruled 20pt title, a narrow abstract, and 14pt main headings.
+Black-outline panels identify attributed excerpts. The title lists all five
+coauthors in their supplied order with their confirmed affiliations. References
+precede the limitations and ethics appendix and the detailed evidence appendices.
 
 ### Historical layouts
 
@@ -60,14 +23,11 @@ with TeX Live pdfLaTeX through latexmk; the PDF is
 Its main text is followed by references, the limitations/ethics appendix,
 and a complete run/episode appendix. The
 [review record](../../report/agentic/review.md) preserves checks and gaps.
-The user requested removal of its LLM Usage and Execution/accounting
-appendices. This edit does not certify final submission compliance.
 
 The editable sample is [report/main.tex](../../report/main.tex), using the
 user-supplied `arxiv.sty` unchanged as a general starting guide. This is an
 **internal baseline integration report**. Its two-episode live smoke evidence
-replaces the earlier fictional teaching comparison; it is not the agentic
-sprint manuscript.
+replaces the earlier fictional teaching comparison.
 The supplied style is not evidence of arXiv acceptance or compliance with a
 conference's current requirements. Its attribution and attachment hashes are
 recorded in [template provenance](../../report/template/README.md).
@@ -84,28 +44,17 @@ inspection. The submission fields below remain open for the actual venue.
 
 ## Required record
 
-Replace `UNSET` with a verified value or an explicit `not applicable` plus a
-reason. Keep the source URL and the date checked beside each external rule.
+Update this record when a submission venue is selected. Keep the source URL
+and the date checked beside each external rule.
 
 | Field | Project value |
 | --- | --- |
-| Venue, year, track, and paper type | Apart AI Collusion Research Sprint 2026, research report |
-| Document stage: internal / submission / rebuttal / camera-ready | Prospective internal working draft; new results pending |
-| Official author guide and policy URLs; date checked | Official sprint URL above; 2026-10-26 |
-| Official template URL, release/version, download date, and checksum or committed revision | Linked Google document above; text inspected, modified 2026-10-22; visual compliance unresolved |
+| Venue, year, track, and paper type | Working paper; venue pending |
+| Document stage | Working draft |
+| Official author guide, policies, and template | Pending venue selection |
 | Local report root and main `.tex` file | `report/agentic/main.tex` |
-| Required class/style and review/final switches | Official template required; current article draft not certified equivalent |
 | Compiler, TeX distribution, bibliography backend, exact build command | pdfLaTeX, TeX Live 2025, latexmk 4.86a; inline bibliography; `make -C report agentic` |
-| Main-text page limit and what counts toward it | Eight main-text pages excluding references/appendices; abstract 150–250 words |
-| References, appendices, supplementary material: placement and limits | References then required limitations/ethics appendix; no separate verified supplement cap |
-| Paper size, margins, columns, fonts, and figure widths | Active draft: Letter, 1in margins, one column, 11pt native Computer Modern, 6.5in text width; requested Epistemics Apart adaptation; exact October-template compliance unresolved |
-| Citation and bibliography style; self-citation rules | UNSET |
-| Anonymity: manuscript, PDF metadata, code/data links, supplements | UNSET |
-| Required ethics, reproducibility, limitations, and AI-use disclosures | Required limitations/dual-use/ethics appendix present; template includes LLM usage statement removed at user request; final author review open |
-| Required data/code artifacts and accessibility requirements | UNSET |
-| Submission files, size limits, portal, deadline, and stated timezone | PDF; deadline above; no submission attempted; remaining portal/size details unverified |
-| Camera-ready changes and publication/license requirements | UNSET |
-| Last policy check, checker, and unresolved questions | 2026-11-17, Codex; five-author order preserved and affiliations user-confirmed; independent labels, final disclosures, and submission compliance open |
+| Page limits, anonymity, accessibility, disclosures, and submission logistics | Pending venue selection |
 
 Official rules for the chosen venue and stage take precedence over house
 formatting. Preserve scientific accuracy and disclose limitations when fitting

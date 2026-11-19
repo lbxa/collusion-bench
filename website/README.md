@@ -2,8 +2,8 @@
 
 This top-level `website/` folder is a self-contained Bun/Astro project following
 the approved Epistemics companion's light palette, ruled header, compact shadcn
-controls and centred resource links. Its data and author roster belong to the
-Collusion Sprint. There is no demo, accordion, backend or paid model call.
+controls and centred resource links. Its data and author roster come from the
+collusion research project.
 
 ```sh
 bun install --frozen-lockfile
@@ -14,11 +14,13 @@ bun run dev -- --port 4330
 ## Evidence and updates
 
 `data-sources.json` pins the final November collection snapshot, the historical
-October aggregate, the current working paper and the October paper. The November
-readout includes five models, six conditions and a separate recovery cohort. Assigned outcomes
-include aborts and unresolved cases. Resistance estimates and confidence
-intervals remain unavailable pending independent review. The October
-aggregate keeps ambiguous and interrupted cases under its original scope.
+October and swarm aggregates, the current working paper and the October paper.
+The November readout includes five models, six conditions and a separate
+recovery cohort. Assigned outcomes include aborts and unresolved cases.
+Resistance estimates and confidence intervals remain unavailable pending
+independent review. October keeps its original labels and assignments. The
+[swarm aggregate](../report/evidence/swarm-sprint/) records votes and settlements
+from the principles and scale campaigns under their original conditions.
 
 `scripts/sync-research.ts` validates report data with Zod and emits identical,
 safe JSON projections in `src/data/` and `public/data/`. It copies verified PDFs
@@ -55,8 +57,8 @@ The first draft's checks and remaining gaps are recorded in [REVIEW.md](REVIEW.m
 
 ## Cloudflare Workers
 
-`wrangler.jsonc` names the Worker `collusion` and serves `dist/` through Workers
-Static Assets. Wrangler runs `bun run build` before deploying, including the
+`wrangler.jsonc` names the Worker `collusion-bench` and serves `dist/` through
+Workers Static Assets. Wrangler runs `bun run build` before deploying, including the
 pinned-data checks. No server entrypoint or Astro server adapter is needed.
 The custom `src/pages/404.astro` builds to `dist/404.html`; Workers serves it
 with a 404 status for missing paths, including nested URLs.
@@ -73,12 +75,20 @@ using Wrangler's authenticated account. Keep credentials in Wrangler's local
 authentication or CI secrets. No account ID, token or custom domain is stored
 in the config. The default endpoint uses `workers.dev`.
 
-For Cloudflare Git integration, set the root directory to `website` and deploy
-command to `bun run deploy`. Install dependencies with
-`bun install --frozen-lockfile`; Wrangler already invokes the build command.
-The Cloudflare Worker/project name must match `collusion` in the config.
+For Cloudflare Git integration, select `lbxa/collusion-bench`, set the root
+directory to `website`, and use `bun run deploy` as the deploy command. Use
+`collusion-bench` as the Worker name. Install dependencies with
+`bun install --frozen-lockfile`. On a fresh checkout, restore the
+[pinned research inputs](../report/README.md#restore-experimental-data) before
+Wrangler runs the build.
 
 ## Changelog
+
+- 2026-11-19: Add the historical swarm aggregates and display the principles
+  and scale cohorts alongside the current benchmark. Seat counts retain
+  missing commitments, and C1/C2 remain subtotals of the scale replication.
+- 2026-11-19: Set the Worker name to `collusion-bench` to match the GitHub
+  repository used by Workers Builds.
 
 - 2026-11-18: Publish the latest working manuscript at the existing paper URL.
   Pin its approved build in `data-sources.json` and keep the October paper

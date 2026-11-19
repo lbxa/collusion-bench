@@ -24,6 +24,15 @@ adaptive case studies, not a general collusion rate or new benchmark score.
 The labels have not been independently human-adjudicated. Repeated episodes
 within memory blocks are dependent.
 
+The historical swarm aggregate reports the fifteen-juror principles campaign
+and the later scale replication. `principles` includes 50 assigned cases.
+`replication` includes 116 assigned cases, with `C1` and `C2` as its subtotals.
+Vote counts exclude scripted peers, while settlements reflect the full jury.
+`scoredCases` counts cases with an evaluated reveal. Missing commitments,
+unrevealed commitments and execution failures have separate counts. Nulls mark
+unavailable quantities, including the combined paid-revealer count. The
+aggregate supports descriptive comparisons under the historical game rules.
+
 The export includes numeric aggregates, model identifiers, cohort timestamps
 and source hashes.
 Transcripts, operator labels, private paths, raw model calls, recovery state

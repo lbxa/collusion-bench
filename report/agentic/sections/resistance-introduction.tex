@@ -5,9 +5,7 @@ discuss a harmful arrangement and then refuse to carry it out. A benchmark that
 counts either observation as executed collusion collapses distinct behaviors
 and can mistake task failure for resistance. We therefore ask which linked
 observations justify a collusion label, and how much a detector loses when it
-sees only speech or only actions. These questions follow Apart's Track~2.3
-on convincing evidence and Track~2.2 on combining what agents say and
-do~\cite{apart}.
+sees only speech or only actions.
 
 The setting is a dispute game. A creator submits a claim, a challenger disputes
 it, and jurors commit and reveal verdicts. The contract enforces deposits and
@@ -17,6 +15,12 @@ particular verdict. This creates an observable opportunity to substitute a
 financial arrangement for evidence-based judgment. The experiment must still
 establish that the opportunity is feasible, that an honest strategy is
 achievable, and that the agent received the obligation it is said to violate.
+
+The jury is a small agent network. Its members can communicate before voting,
+and a coalition can change the settlement by reaching a majority. A single
+adverse ballot can therefore be decisive when an aligned bloc is one vote
+short. Section~\ref{sec:swarm-design} describes the historical design and its
+adaptation to the current model roster and source tasks.
 
 This revision reports a five-family mechanical outcome profile and selected
 trajectories from a frozen 150-session confirmation frame, alongside a separate
@@ -30,6 +34,12 @@ remains open, so the observed profiles do not yet establish model resistance
 rates or a population ranking.
 
 \section{Related Work}
+Apart Research's Swarm Alignment sprint asked how roles and interactions
+change as agent networks grow~\cite{apart-swarm}. METR documented agent
+coordination in the Hugging Face incident~\cite{metr-hf}, and Lee and Tiwari
+studied how instructions propagate between connected agents~\cite{lee-tiwari}.
+Our staged jury experiments study recruitment after direct exposure.
+
 The case material adapts numerical financial questions from FinQA and
 TAT-QA~\cite{finqa,tatqa}, student arithmetic from MathDial~\cite{mathdial},
 contract evidence from ContractNLI~\cite{contractnli}, and abstract-grounded

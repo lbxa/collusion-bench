@@ -5,6 +5,7 @@ build/
 /*.fls
 /*.log
 /*.out
+/*.synctex
 /*.synctex.gz
 /*.synctex(busy)
 /*.toc

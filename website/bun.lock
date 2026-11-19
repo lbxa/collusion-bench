@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "collusion-sprint-website",
+      "name": "collusion-bench-website",
       "dependencies": {
         "@astrojs/react": "5.0.7",
         "@base-ui/react": "1.9.0",

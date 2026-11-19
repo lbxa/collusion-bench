@@ -246,6 +246,15 @@ def fake_wandb(monkeypatch):
     return state
 
 
+def test_tracking_defaults_do_not_authorize_campaign_audit_upload(archive, tmp_path, fake_wandb):
+    scope = archive.tracking.resolve_scope(
+        tmp_path / "absent.env", environ={"WANDB_API_KEY": "fixture-key"}
+    )
+    with pytest.raises(ValueError, match="explicitly authorized"):
+        archive.publish_snapshot(tmp_path / "unstaged", scope, "test")
+    assert fake_wandb.initialized == []
+
+
 @pytest.mark.parametrize("access", ["PUBLIC", "RESTRICTED", None])
 def test_publish_requires_private_project_before_initializing(
     archive,

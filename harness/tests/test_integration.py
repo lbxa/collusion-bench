@@ -4,10 +4,15 @@ Use stepped clocks for mechanics; only the dedicated realtime test waits for
 the host clock. Keep research configs' full phase windows in stepped fixtures.
 """
 
+import asyncio
 import json
 import re
 import shlex
+import subprocess
+import sys
 import time
+from decimal import Decimal
+from functools import partial
 
 import httpx
 import openai
@@ -19,9 +24,12 @@ from pydantic import Field
 
 from game_api.generated import RegisterEpisode
 from game_api.local_engine import LocalEngine
+from veracity_harness.campaign import Assignment, CampaignPlan, freeze_plan, run_campaign
 from veracity_harness.config import load_experiment
+from veracity_harness.resistance import CONFIRMATION_CASES, V1_ROSTER
 from veracity_harness.runner import ROOT, retain_evidence, run_experiment
 from veracity_harness.sandbox import DockerArena
+from veracity_harness.spending import CampaignSpending
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -928,6 +936,74 @@ async def test_the_swarm_scale_offer_pays_every_flat_voter_of_the_largest_jury(t
     jurors = {a for a in experiment.actor_ids if a.startswith("juror-")}
     assert {t["recipient"] for t in transfers} == jurors
     assert all(int(t["amount_wei"]) == int(experiment.offer_payment_wei) for t in transfers)
+
+
+@pytest.mark.integration
+@pytest.mark.xdist_group(name="swarm")
+@pytest.mark.parametrize(
+    ("arm", "ballot", "outcome", "paid"),
+    [
+        ("n3-adverse", "CHALLENGER_SUPPORTED", "source_correct", 0),
+        ("n15-adverse", "CREATOR_SUPPORTED", "captured", 8),
+    ],
+)
+async def test_swarm_benchmark_runs_both_frozen_sources_through_campaign(
+    tmp_path, arm, ballot, outcome, paid
+):
+    study = ROOT / "harness/research/swarm-benchmark-v1"
+    provider, _, model_id = V1_ROSTER["deepseek"]
+    assignment = Assignment(
+        id=f"sbv1-deepseek-{arm}-901",
+        config=study / f"{arm}-peers.toml",
+        model=model_id,
+        provider=provider,
+        seed=901,
+    )
+    plan = tmp_path / "plan.json"
+    plan.write_text(
+        CampaignPlan(name="swarm-benchmark-v1", assignments=[assignment]).model_dump_json()
+    )
+    cap = Decimal("1")
+    frozen = freeze_plan(plan, cap)
+    fixture_runner = partial(run_experiment, model=EarlyVoterFixtureModel(verdict=ballot))
+    campaign = tmp_path / "campaign"
+    status = await run_campaign(
+        frozen, campaign, CampaignSpending(tmp_path / "fixture.sqlite", cap), runner=fixture_runner
+    )
+    assert status["counts"]["complete"] == 1
+    assert status["spending"]["requests"] == 0
+    assert status["spending"]["accounted_usd"] == "0"
+    output = tmp_path / "readout.json"
+    await asyncio.to_thread(
+        subprocess.run,
+        [
+            sys.executable,
+            str(study / "readout.py"),
+            "--fixture",
+            "--campaign",
+            str(campaign),
+            "--output",
+            str(output),
+        ],
+        check=True,
+    )
+    readout = json.loads(output.read_text())
+    assert readout["frame"] == "fixture"
+    cases = readout["cases"]
+    assert tuple(case["source_id"] for case in cases) == CONFIRMATION_CASES
+    for case in cases:
+        assert case["outcome"] == outcome
+        assert case["paid_false_revealers"] == paid
+        assert case["false_reveals"] == paid
+        assert case["truthful_reveals"] == (2 if outcome == "source_correct" else 0)
+        assert case["no_commitment"] == case["unrevealed_commitments"] == 0
+        assert case["source_sha256"] in frozen.assignments[0].inputs_sha256.values()
+        assert (
+            case["constitution_sha256"] == frozen.assignments[0].documents_sha256["CONSTITUTION.md"]
+        )
+        assert case["peer_exposure_recorded"]
+        assert case["provider_behavior"] is False
+        assert case["semantic_status"] == "unresolved"
 
 
 @pytest.mark.integration

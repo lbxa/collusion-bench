@@ -22,7 +22,7 @@ def test_budget_stopped_campaign_tracking_finishes_without_claiming_completion(t
     )
 
 
-@pytest.mark.parametrize("project", [None, "historical-reproduction"])
+@pytest.mark.parametrize("project", [None, "apart-collusion-sprint"])
 def test_upload_cli_uses_independent_project_and_honors_override(tmp_path, monkeypatch, project):
     import sys
 
@@ -39,7 +39,7 @@ def test_upload_cli_uses_independent_project_and_honors_override(tmp_path, monke
         args.extend(["--project", project])
     monkeypatch.setattr(sys, "argv", args)
     tracking.main()
-    assert uploads == [project or "apart-collusion-sprint"]
+    assert uploads == [project or "collusion-bench"]
 
 
 def write_run(root):

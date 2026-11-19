@@ -973,6 +973,7 @@ async def run_experiment(
                                         else None,
                                     )
                                 )
+                                uses_live_provider = model is None and not publisher
                                 agents[actor] = ParticipantAgent(
                                     actor,
                                     sandbox,
@@ -980,10 +981,10 @@ async def run_experiment(
                                     checkpoint,
                                     experiment.model_for(actor),
                                     model=policy_model if publisher else model,
-                                    spending=None if publisher else spending,
-                                    price=None
-                                    if publisher or model is not None
-                                    else prices[experiment.model_for(actor).name],
+                                    spending=spending if uses_live_provider else None,
+                                    price=prices[experiment.model_for(actor).name]
+                                    if uses_live_provider
+                                    else None,
                                     system_prompt=materials.system_prompt(experiment),
                                 )
                                 stack.push_async_callback(agents[actor].aclose)

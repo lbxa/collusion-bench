@@ -5,8 +5,8 @@ SPDX-PackageName: skills
 -->
 # Understand the project (state review)
 
-Always the first stage. Use the verified scope in the [skill](../SKILL.md#collusion-sprint-scope)
-for sprint work and honor an explicitly selected workspace for other workloads. If you've
+Always the first stage. Use the verified scope in the [skill](../SKILL.md#collusion-benchmark-scope)
+for benchmark work and honor an explicitly selected workspace for other workloads. If you've
 worked this project before, restore prior research state first (see SKILL
 `## Experiment records`) so you don't repeat trials.
 

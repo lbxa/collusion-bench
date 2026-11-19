@@ -479,6 +479,65 @@
     "failed": 51,
     "interrupted": 5
   },
+  "swarm": {
+    "sourceCommit": "5b74c900e5fc56ce60afacde00e34c64c9c4524c",
+    "principles": {
+      "sessions": 50,
+      "assignedCases": 50,
+      "scoredCases": 49,
+      "evaluatedSeats": 400,
+      "falseReveals": 0,
+      "truthfulReveals": 390,
+      "noCommitment": 10,
+      "unrevealedCommitments": 0,
+      "falseSettlements": 0,
+      "executionFailureCases": 6,
+      "failedSessions": null,
+      "paidFalseRevealers": null
+    },
+    "C1": {
+      "sessions": 57,
+      "assignedCases": 63,
+      "scoredCases": 52,
+      "evaluatedSeats": 216,
+      "falseReveals": 45,
+      "truthfulReveals": 77,
+      "noCommitment": 94,
+      "unrevealedCommitments": 0,
+      "falseSettlements": 20,
+      "executionFailureCases": 2,
+      "failedSessions": 2,
+      "paidFalseRevealers": 43
+    },
+    "C2": {
+      "sessions": 47,
+      "assignedCases": 53,
+      "scoredCases": 44,
+      "evaluatedSeats": 173,
+      "falseReveals": 52,
+      "truthfulReveals": 65,
+      "noCommitment": 55,
+      "unrevealedCommitments": 1,
+      "falseSettlements": 19,
+      "executionFailureCases": 6,
+      "failedSessions": 6,
+      "paidFalseRevealers": null
+    },
+    "replication": {
+      "sessions": 104,
+      "assignedCases": 116,
+      "scoredCases": 96,
+      "evaluatedSeats": 389,
+      "falseReveals": 97,
+      "truthfulReveals": 142,
+      "noCommitment": 149,
+      "unrevealedCommitments": 1,
+      "falseSettlements": 39,
+      "executionFailureCases": 8,
+      "failedSessions": 8,
+      "paidFalseRevealers": null
+    }
+  },
   "historical": {
     "date": "2026-10-26",
     "unit": "run/block; episodes within memory blocks are dependent",
@@ -517,6 +576,10 @@
     "historical": {
       "path": "report/data/agentic-campaign.json",
       "sha256": "1aa2e353ae3ed47252d33d23df54b150dc340c300439807027edcac31c8a0699"
+    },
+    "swarm": {
+      "path": "report/evidence/swarm-sprint/swarm-historical-summary.json",
+      "sha256": "2489d4cafb5567d21fd7c5a878322a356dcf79c10d54dc97e3f811dfd2252462"
     }
   }
 }

@@ -5,10 +5,11 @@ import { projectResearch } from "./research-export";
 
 const current = JSON.parse(readFileSync(new URL("../../../" + sources.current.path, import.meta.url), "utf8"));
 const historical = JSON.parse(readFileSync(new URL("../../../" + sources.historical.path, import.meta.url), "utf8"));
+const swarm = JSON.parse(readFileSync(new URL("../../../" + sources.swarm.path, import.meta.url), "utf8"));
 
 describe("public research boundary", () => {
   test("retains the assigned denominator and outcomes for all five models", () => {
-    const data = projectResearch(current, historical);
+    const data = projectResearch(current, historical, swarm);
     expect(data.conditions).toHaveLength(7);
     expect(data.models.map(({ id, outcomes: { primary: row } }) =>
       [id, row.assigned, row.correct, row.adverse, row.aborted, row.unresolved])).toEqual([
@@ -25,38 +26,66 @@ describe("public research boundary", () => {
     const changed = structuredClone(current);
     const rows = changed.cohorts.original_confirmation.by_model_arm;
     rows[1] = rows[0];
-    expect(() => projectResearch(changed, historical)).toThrow();
+    expect(() => projectResearch(changed, historical, swarm)).toThrow();
     const mismatched = structuredClone(current);
     mismatched.cohorts.original_confirmation.by_model_arm[0].missing_case_evidence += 1;
-    expect(() => projectResearch(mismatched, historical)).toThrow();
+    expect(() => projectResearch(mismatched, historical, swarm)).toThrow();
   });
   test("keeps recovery separate even when an original assignment is unresolved", () => {
-    const data = projectResearch(current, historical);
+    const data = projectResearch(current, historical, swarm);
     expect(data.original).toMatchObject({ assigned: 300, correct: 122, adverse: 2, aborted: 26, unresolved: 150 });
     expect(data.recovery).toMatchObject({ assigned: 150, correct: 43, adverse: 0, aborted: 3, unresolved: 104, sessions: 75, completed: 19, failed: 51, interrupted: 5 });
     const changed = structuredClone(current);
     changed.cohorts.exploratory_recovery.assigned_cases = 0;
-    expect(() => projectResearch(changed, historical)).toThrow();
+    expect(() => projectResearch(changed, historical, swarm)).toThrow();
   });
   test("retains the separate October denominator and ambiguous cases", () => {
-    const data = projectResearch(current, historical);
+    const data = projectResearch(current, historical, swarm);
     expect(data.historical.runs).toBe(13);
     expect(data.historical.assigned).toBe(19);
     expect(data.historical.terminal).toBe(18);
     expect(data.historical.categories.map(category => category.count)).toEqual([7, 3, 8, 1]);
+  });
+  test("retains the original swarm cohort boundaries, vote counts and missing values", () => {
+    const { swarm: projected, historical: october, original } = projectResearch(current, historical, swarm);
+    expect(projected.principles).toMatchObject({
+      sessions: 50, assignedCases: 50, evaluatedSeats: 400,
+      truthfulReveals: 390, falseReveals: 0, noCommitment: 10, failedSessions: null,
+    });
+    expect(projected.replication).toMatchObject({
+      sessions: 104, assignedCases: 116, evaluatedSeats: 389, truthfulReveals: 142,
+      falseReveals: 97, noCommitment: 149, unrevealedCommitments: 1, falseSettlements: 39,
+      failedSessions: 8, paidFalseRevealers: null,
+    });
+    expect(projected.C1.paidFalseRevealers).toBe(43);
+    expect(projected.C1.sessions + projected.C2.sessions).toBe(projected.replication.sessions);
+    expect(october.assigned).toBe(19);
+    expect(original.assigned).toBe(300);
+  });
+  test("rejects swarm totals that drop an assigned seat or double count a subset", () => {
+    const changed = structuredClone(swarm);
+    changed.cohorts.replication.no_commitment -= 1;
+    expect(() => projectResearch(current, historical, changed)).toThrow();
+    const duplicated = structuredClone(swarm);
+    duplicated.cohorts.replication.sessions += duplicated.cohorts.C1.sessions;
+    duplicated.cohorts.replication.assigned_cases += duplicated.cohorts.C1.assigned_cases;
+    expect(() => projectResearch(current, historical, duplicated)).toThrow();
   });
   test("strips operator details and episode-level evidence", () => {
     const changed = structuredClone(current);
     changed.operator_secret = "never-export-this";
     changed.roster[0].operator_secret = "never-export-this";
     changed.cohorts.original_confirmation.by_model_arm[0].run_directory = "never-export-this";
-    const data = JSON.stringify(projectResearch(changed, historical));
+    const changedSwarm = structuredClone(swarm);
+    changedSwarm.private_locators = ["never-export-this"];
+    changedSwarm.cohorts.C1.operator_transcript = "never-export-this";
+    const data = JSON.stringify(projectResearch(changed, historical, changedSwarm));
     for (const field of ["never-export-this", "case_observations", "run_directory", "proof_locators", "payoffs_wei", "model_settings", "lbxa-corp"]) expect(data).not.toContain(field);
   });
   test("rejects unknown historical labels and missing model slots", () => {
     const changed = structuredClone(historical);
     changed.runs[0].episodes[0].review.classification = "safe";
-    expect(() => projectResearch(current, changed)).toThrow();
-    expect(() => projectResearch({ ...current, roster: current.roster.slice(1) }, historical)).toThrow();
+    expect(() => projectResearch(current, changed, swarm)).toThrow();
+    expect(() => projectResearch({ ...current, roster: current.roster.slice(1) }, historical, swarm)).toThrow();
   });
 });

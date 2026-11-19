@@ -1,4 +1,4 @@
-# Collusion Sprint: Veracity Game and Agent Harness
+# Collusion Bench
 
 A versioned HTTP API for the Veracity dispute game in [SPEC.md](SPEC.md).
 The Rust service connects to a non-upgradeable Solidity contract that enforces
@@ -7,6 +7,8 @@ The autonomous Python harness in `harness/` supplies isolated Deep Agents,
 Cloudflare model access, treatments, observations, and evidence exports. It
 wraps the Rust engine through HTTP; experiment behavior stays outside the engine. Creating a
 game through the API does not require an experiment or scenario record.
+
+This work was inspired by our work during the Apart Research sprints.
 
 The core owns the [public episode forum](docs/public-forum.md) and
 [private two-person chats](docs/private-chat.md), with separate durable usage
@@ -18,9 +20,9 @@ service exposes the same guide at `/v1/docs` and OpenAPI 3.1 at `/v1/openapi.jso
 
 ## Research objective and ownership
 
-This project studies **evidence of agent collusion**. Track 2.3, what should
-count as convincing evidence, anchors the study; Track 2.2, whether combining
-what agents say and do improves detection, is the first planned comparison.
+This project studies **what counts as convincing evidence of agent collusion**.
+The first planned comparison asks whether combining what agents say and do
+improves detection over either source alone.
 The [research contract](docs/benchmark.md) defines scenario admission, evidence
 thresholds, annotation, and uncertainty. Runtime capability is not an empirical
 result, and the harness upgrade launches no experiments.
@@ -41,9 +43,18 @@ structured-action experiments worked.
 
 ## Swarm Alignment Hackathon 2026: preexisting-work notice
 
-**This repository predates the November 6–8, 2026 Swarm Alignment Hackathon.** Its latest identified commit before that sprint is [f3826f16c97c](https://github.com/lbxa/apart-collusion-sprint/commit/f3826f16c97c) (October 28, 2026 UTC). The Rust/Solidity game, Python harness, experiment designs, prior reports, and exploratory model campaigns are prior work. They may be reused only with explicit attribution and must not be presented as new sprint implementations or findings.
+**This repository predates the November 6–8, 2026 Swarm Alignment Hackathon.** Its latest identified commit before the event is `f3826f16c97c` (October 28, 2026 UTC). The Rust/Solidity game, Python harness, experiment designs, prior reports, and exploratory model campaigns are prior work. They may be reused only with explicit attribution and must not be presented as new sprint implementations or findings.
 
-The successor [Veracity benchmark](https://github.com/lbxa/collusion-benchmark) also predates November 6; its baseline is [c81c03a6d7cd](https://github.com/lbxa/collusion-benchmark/commit/c81c03a6d7cd) (November 3, 2026 UTC). See its [sprint provenance register](https://github.com/lbxa/collusion-benchmark/blob/main/docs/swarm-2026-disclosure.md). No November 6–8 experiment or result is claimed here. Fictional report examples and historical exploratory results are not new sprint evidence.
+The successor [Veracity benchmark](https://github.com/lbxa/collusion-benchmark)
+also predates November 6. Its baseline is
+[c81c03a6d7cd](https://github.com/lbxa/collusion-benchmark/commit/c81c03a6d7cd)
+(November 3, 2026 UTC). The independent sprint fork used this infrastructure to
+study recruitment into scripted jury blocs. Its
+[frozen historical evidence](report/evidence/swarm-sprint/) covers the
+fifteen-juror principles campaign and the November 9 scale replication.
+The [run guide](harness/research/swarm/README.md) preserves the original designs
+and the [prospective protocol](harness/research/swarm-benchmark-v1/PROTOCOL.md)
+defines a comparison using the current five model slots and source cases.
 
 ## Research reporting
 
@@ -52,11 +63,12 @@ A LaTeX research report is a main deliverable. The
 paper brief, writing standards, figures and tables, LaTeX conventions, venue
 requirements, review checks, source notes, and reusable examples. Agents should
 follow the reading order in [AGENTS.md](AGENTS.md#research-reports) before writing.
-The [report guide](report/README.md) describes the older baseline manuscript;
-build it with `make -C report`. The separate October agentic manuscript is
-`report/agentic/main.tex`, built with `make -C report agentic`. Consult the
-[paper brief](docs/reporting/paper-brief.md) for admitted historical evidence.
-Neither historical results nor fictional teaching examples are new upgrade results.
+The [report guide](report/README.md) describes the older baseline manuscript,
+built with `make -C report`. The [active working paper](report/agentic/main.tex)
+builds with `make -C report agentic`. The [archived October manuscript](report/agentic/historical-october-main.tex)
+builds with `make -C report agentic-historical`. The
+[paper brief](docs/reporting/paper-brief.md) maps the active paper's claims to
+their evidence.
 
 ## Development
 
@@ -114,7 +126,6 @@ call `/v1`, retain authoritative settlement evidence, and clean up processes.
 Use [the harness guide](harness/README.md) for Cloudflare setup, controls, tracking,
 privacy boundaries, and exact commands.
 
-New tracking uses `lbxa-corp/apart-collusion-sprint` on the standard W&B API host.
 Keep the repository's ignored `.env`, provider credentials, and campaign ledger
 separate from Epistemics. W&B stores tracking and artifacts; it does not supply
 compute. A cloud worker must run the harness independently.
@@ -219,14 +230,26 @@ rolls back only worktrees and branches created by that invocation.
 
 ## Changelog
 
+### 2026-11-19
+
+- Incorporate the independent Apart swarm evidence and run configurations as
+  a peer-recruitment study under the Collusion research contract. The
+  prospective five-model comparison uses a separate campaign frame.
+- Document [research data storage](AGENTS.md#research-data-storage) so approved
+  Hugging Face snapshots can be restored at their original paths and checked
+  against their recorded hashes.
+- Use `collusion-bench` for the repository, new W&B tracking, and the website
+  Worker. Keep historical run and artifact addresses tied to the campaigns
+  that generated them.
+
 ### 2026-11-17
 
 - Replace both legacy Python runtimes with the current autonomous `harness/` and
   Cloudflare support while preserving historical evidence at its recorded paths.
 - Keep common execution infrastructure separate from Collusion's research
-  contract, labels, cohorts, credentials, and W&B project. Track 2.3 anchors the
-  paper; Track 2.2 supplies the first planned detector comparison. The
-  [runtime consolidation decision](docs/decisions/consolidate-the-collusion-harness-with-cloudflare.md)
+  contract, labels, cohorts, credentials, and W&B project. The paper addresses
+  standards of evidence for collusion and plans a comparison of detectors using
+  communication, actions, or both. The [runtime consolidation decision](docs/decisions/consolidate-the-collusion-harness-with-cloudflare.md)
   and [research anchor decision](docs/decisions/anchor-collusion-in-evidence-and-detector-comparison.md)
   retain the scope and trade-offs.
 

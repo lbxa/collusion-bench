@@ -1,5 +1,23 @@
 # Website review
 
+## November 19 swarm evidence
+
+The site and JSON agree with the pinned swarm projection. The principles and
+scale cohorts retain their original assignments and missing votes. The planned
+five-model comparison is described separately from these observed outcomes.
+The 21-page working paper served by the local build matches the reviewed PDF,
+SHA-256 `cf90c5aebc5c497507a705e085ddc79be8337d2803e40a3d7f934fac5ff2e7bb`.
+
+- Pinned-data checks, eight Bun tests, Astro and TypeScript checks, and the
+  production build passed. Source lint reported zero warnings. The wider lint
+  command passed with five warnings from existing `.wrangler` build files.
+- Chromium verified the swarm shortcut and table at widths of 1440, 390 and
+  320 pixels without horizontal overflow. The table and default current-study
+  chart rendered with JavaScript disabled. The existing condition filter
+  switched to the principles panel without errors.
+- Both PDFs, the aggregate JSON and the data notes returned HTTP 200. The build
+  and browser checks ran against the local Astro production preview.
+
 ## November 18 paper checkpoint
 
 The working-paper download matches the 19-page November manuscript, SHA-256

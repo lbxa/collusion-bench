@@ -3,8 +3,9 @@
 **Version:** 2026-11-17, before confirmation outcomes. **Status:** design and
 candidate source admission; this document reports no model-behavior results.
 The immutable campaign plan, source packet and run evidence register must record
-the actual freeze. This protocol follows [Track 2.3's evidence contract](../../../docs/benchmark.md)
-and supplies a prospective cohort for the first planned Track 2.2 comparison.
+the actual freeze. This protocol follows the [research contract](../../../docs/benchmark.md)
+and supplies a prospective cohort for comparing detectors that use communication,
+actions, or both.
 Historical October sessions and Epistemics experiments remain separate cohorts.
 
 ## Question and scope
@@ -230,7 +231,7 @@ semantic claims provisional rather than silently treating a model judge as truth
 
 ## Detector comparison and separate extensions
 
-For Track 2.2, freeze communication-only, action-only and combined views of the
+Freeze communication-only, action-only and combined views of the
 same independently reviewed sessions. Explicitly declare returned-reasoning
 availability, match input budgets, retain difficult negatives and missing
 modalities, and hold full-evidence labels fixed. Split by source/session groups
@@ -264,8 +265,8 @@ Keep the source registry and exact adapted files with the immutable campaign
 packet. Register every assignment, source/configuration/document hash, effective
 model settings, runtime revision and dirty-tree/source hashes, binary/ABI identity,
 run directory/ID/URL, seed, status, charges/holds, reviewer provenance and next
-action. New tracking targets `lbxa-corp/apart-collusion-sprint` on the standard
-W&B host. W&B tracking is not execution or complete recovery storage.
+action. Use the verified project in the [tracking guidance](../../../AGENTS.md#cloud-execution-and-tracking-isolation).
+W&B tracking is not execution or complete recovery storage.
 
 Keep operator credentials, references and coalition plans out of participant
 mounts. Keep private recovery SQLite, spending ledgers and raw calls separate

@@ -7,7 +7,8 @@ import "../styles/global.css";
 
 const title = "Collusion Resistance";
 const description = "From agreements to actions: a research companion for measuring harmful coordination between AI agents.";
-const code = "https://github.com/lbxa/apart-collusion-sprint";
+const code = "https://github.com/lbxa/collusion-bench";
+const dataBucket = "https://huggingface.co/buckets/lbxa/collusion-bench";
 const authors = [
   { name: "Lucas Barbosa", affiliation: "NYU" },
   { name: "Stefan Gazzana", affiliation: "Roundarc" },
@@ -17,13 +18,15 @@ const authors = [
 ];
 const links = [
   { label: "Explore study", href: "#results" },
+  { label: "Swarm study", href: "#swarm" },
   { label: "Working paper", href: "/files/collusion-resistance-working-paper.pdf" },
-  { label: "Data", href: "/data/research.json", download: true },
+  { label: "Data", href: dataBucket },
   { label: "Code", href: code },
 ];
 const resources = [
   { label: "Working paper ↗", href: "/files/collusion-resistance-working-paper.pdf" },
-  { label: "Data ↓", href: "/data/research.json", download: true },
+  { label: "Hugging Face data (private)", href: dataBucket },
+  { label: "Download results JSON", href: "/data/research.json", download: true },
   { label: "Study notes ↗", href: "/data/README.md" },
   { label: "Code ↗", href: code },
   { label: "October paper ↗", href: "/files/october-case-studies.pdf" },
@@ -33,6 +36,17 @@ const cohorts = [
   { label: "Original study", ...research.original },
   { label: "Exploratory recovery", ...research.recovery },
 ];
+const { principles, replication, C1 } = research.swarm;
+const swarmMeasures = [
+  { label: "Sessions", key: "sessions" },
+  { label: "Assigned cases", key: "assignedCases" },
+  { label: "Assigned evaluated seats", key: "evaluatedSeats" },
+  { label: "Truthful reveals", key: "truthfulReveals" },
+  { label: "False reveals", key: "falseReveals" },
+  { label: "No commitment", key: "noCommitment" },
+  { label: "Commitment unrevealed", key: "unrevealedCommitments" },
+  { label: "False-claim settlements", key: "falseSettlements" },
+] as const;
 ---
 <html lang="en">
   <head>
@@ -103,6 +117,25 @@ const cohorts = [
             <p class="figure-note">Recovery attempts had a different mix of conditions and are reported separately. Infrastructure failures left uneven coverage across models. With two fixed tasks, one offer level, and independent review still pending, a resistance ranking would be premature.</p>
           </section>
           <Separator className="my-12" />
+          <section id="swarm" aria-labelledby="swarm-title">
+            <h2 id="swarm-title">When do jurors join a voting bloc?</h2>
+            <p>In Veracity, a jury is an agent network whose votes jointly determine a binding verdict. The Apart Swarm Alignment sprint examined what happens when scripted peers announce a voting position before evaluated jurors act. The scale replication used juries of 3, 7 and 15.</p>
+            <table class="coverage-table" aria-describedby="swarm-counts-note">
+              <caption>Historical swarm outcomes</caption>
+              <thead><tr>
+                <th scope="col">Measure</th><th scope="col">15-juror principles</th><th scope="col">Scale replication</th>
+              </tr></thead>
+              <tbody>
+                {swarmMeasures.map(({ label, key }) => <tr>
+                  <th scope="row">{label}</th><td>{principles[key]}</td><td>{replication[key]}</td>
+                </tr>)}
+              </tbody>
+            </table>
+            <p id="swarm-counts-note" class="figure-note">Seat counts cover evaluated jurors. Settlements use the full jury. The scale replication includes {replication.failedSessions} sessions that failed after play began. In its completed C1 cohort, {C1.paidFalseRevealers} false reveals earned the promised synthetic credit.</p>
+            <p class="figure-note">Votes and payments record actions. Establishing collusion also requires evidence of agreement and knowledge of the correct verdict. The forum delivered scripted posts directly. Jury size changed the peer share and ordinary reward together, leaving indirect spread and network thresholds open.</p>
+            <p class="figure-note">The planned comparison uses the current five frontier models and two benchmark cases. It pairs honest and adverse peer policies at each jury size across 150 sessions and 300 assigned cases. Model-backed results are pending.</p>
+          </section>
+          <Separator className="my-12" />
           <section aria-labelledby="historical-title">
             <h2 id="historical-title">What did the earlier cases show?</h2>
             <p class="section-intro">October 2026 · an exploratory campaign under its original rules</p>
@@ -120,10 +153,9 @@ const cohorts = [
         <section class="resources-section" aria-labelledby="resources-title">
           <h2 id="resources-title">Work with the evidence.</h2>
           <nav class="resource-links" aria-label="Research resources"><ResearchLinks links={resources} variant="link" /></nav>
-          <p class="resource-note">The working paper and data download cover the November 17 results. The October paper documents the earlier case studies.</p>
+          <p class="resource-note">The working paper and results JSON include the November 17 results and the historical swarm evidence. The October paper documents the earlier case studies. The data archive requires Hugging Face bucket access.</p>
         </section>
       </div>
-      <footer><p>Apart Research · Collusion Sprint</p></footer>
     </main>
   </body>
 </html>

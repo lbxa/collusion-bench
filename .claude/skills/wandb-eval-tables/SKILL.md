@@ -29,7 +29,7 @@ uv run --project harness --locked --with weave \
   python .agents/skills/wandb-eval-tables/scripts/table_artifact_to_eval_table.py --help
 ```
 
-For sprint work pass `lbxa-corp/apart-collusion-sprint` explicitly. Follow
+For new collusion runs pass `lbxa-corp/collusion-bench` explicitly. Follow
 [AGENTS.md](../../../AGENTS.md) for the standard W&B host and credential loading.
 When the key is in the ignored root `.env`, load it using `python-dotenv` with
 existing environment values preserved. Scan only in an authorized source
@@ -59,16 +59,16 @@ calls, and evaluator-only material require explicit release authorization.
 T=.agents/skills/wandb-eval-tables/scripts/table_artifact_to_eval_table.py
 
 uv run --project harness --locked --with weave python "$T" scan \
-  --source-workspace lbxa-corp/apart-collusion-sprint --max-runs 4
+  --source-workspace lbxa-corp/collusion-bench --max-runs 4
 
 uv run --project harness --locked --with weave python "$T" preview \
-  --source-workspace lbxa-corp/apart-collusion-sprint \
-  --target-project lbxa-corp/apart-collusion-sprint \
+  --source-workspace lbxa-corp/collusion-bench \
+  --target-project lbxa-corp/collusion-bench \
   --max-runs 4 \
   --table-key predictions
 
 uv run --project harness --locked --with weave python "$T" verify-preview \
-  --run lbxa-corp/apart-collusion-sprint/PREVIEW_RUN_ID \
+  --run lbxa-corp/collusion-bench/PREVIEW_RUN_ID \
   --table-key predictions_preview
 ```
 

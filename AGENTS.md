@@ -2,10 +2,10 @@
 
 ## Project Structure & Module Organization
 
-This is the independent Collusion Sprint project. New environments, tracking,
-and campaign metadata use `apart-collusion-sprint`; retain Veracity's package and
-API names. Shared execution code does not merge Collusion's empirical objectives
-with Epistemics. Read `.agents/skills/README.md` for local routing.
+This is `lbxa/collusion-bench`, the independent Collusion research project.
+Retain Veracity's package and API names. Shared execution code does not merge
+Collusion's empirical objectives with Epistemics. Read `.agents/skills/README.md`
+for local routing.
 
 This repository implements the `SPEC.md` game engine and `/v1` API plus the Python experiment harness in `harness/`. `core/src/` contains `api`, `game`, `chain`, `chat`, `forum`, `store`, and configuration modules. `contracts/` owns Solidity rules, Foundry tests, and the deployment artifact. The harness owns agents, treatments, observations, and metrics; it calls HTTP. Keep financial authority in the contract.
 
@@ -56,9 +56,9 @@ APIs. Never skip Docker or chain tests silently. No coverage percentage is confi
 
 ## Collusion research authority
 
-Anchor the paper on Track 2.3, convincing evidence of collusion. Track 2.2,
-text-only versus action-only versus combined detection, is the first planned
-comparative experiment. `docs/benchmark.md` defines scenario admission, evidence
+Anchor the paper on what counts as convincing evidence of collusion. The first
+planned comparative experiment compares text-only, action-only, and combined
+detection. `docs/benchmark.md` defines scenario admission, evidence
 rungs, independent review, denominators, and uncertainty. Implementation and
 fixture checks do not constitute model-behavior evidence.
 
@@ -76,6 +76,29 @@ jury outcomes, contract settlement, and semantic coordination labels are distinc
 Agent annotations remain provisional until independent review. Juror seats and
 repeated cases are not automatically independent statistical replicates.
 
+## Research data storage
+
+- Keep working data in ignored directories on the machine running the work
+  (local or cloud). Use `harness/results/` for run outputs and `report/data/`
+  for analysis inputs. Keep active run state, temporary exports, checkpoints,
+  and spending ledgers within the authorized execution and recovery scope.
+- Use the private Hugging Face bucket `lbxa/collusion-bench` for approved
+  campaign archives and frozen datasets needed to reproduce results. Choose
+  the exact files for each release. Private evidence and raw model calls need
+  explicit release authorization for that upload. Credentials stay on the
+  authorized host. W&B remains the run tracking and monitoring destination.
+- Keep research datasets and raw observations out of Git. Commit code,
+  configurations, test fixtures, restore instructions, and safe provenance.
+  Commit aggregate outputs only when they are intentional report or website
+  deliverables.
+
+Before uploading, check the selected files for credentials, including the
+contents of bundled archives. Use a versioned bucket prefix and preserve paths.
+Record the prefix and file hashes so a restore can be verified. Verify the
+uploaded files against the local originals before removing local copies. See the
+[October archive guide](harness/archive/october-2026/README.md) and the
+[report data guide](report/README.md) for existing restore commands.
+
 ## Cloud execution and tracking isolation
 
 New paid campaigns run on an explicitly selected cloud worker with the required
@@ -88,11 +111,13 @@ participants must never receive provider/operator credentials or evaluator data.
 Reuse one immutable authorized ledger across campaign workers, preserve unknown
 request holds, and never replace a ledger to bypass exhaustion.
 
-Use the repository's `wandb-primary` skill. The verified scope is
-`lbxa-corp/apart-collusion-sprint` at `https://api.wandb.ai`, unless the user
-explicitly selects another destination. Historical Forge URLs are evidence
-addresses, not authority to send a supplied key to another host. Never print keys,
-pass them as command-line arguments, or include them in source or artifacts.
+Use the repository's `wandb-primary` skill. The default for new tracking is
+`lbxa-corp/collusion-bench` at `https://api.wandb.ai`. Read-only project access
+was verified on 2026-11-19. Use the originally recorded scope for an authorized
+resume. The private campaign audit retains its original destination approval.
+Historical Forge URLs are evidence addresses, not authority to send a supplied
+key to another host. Never print keys, pass them as command-line arguments,
+or include them in source or artifacts.
 For connection checks, use read-only project access; do not create dummy runs.
 
 Recover cloud state before dispatch: runner identity, source/configuration,

@@ -76,6 +76,66 @@ const historicalSchema = z.object({
   "Missing historical episodes must retain their interruption status")),
 });
 
+const swarmCohortSchema = z.object({
+  sessions: count,
+  assigned_cases: count,
+  scored_cases: count,
+  evaluated_seats: count,
+  false_reveals: count,
+  truthful_reveals: count,
+  no_commitment: count,
+  unrevealed_commitments: count,
+  false_settlements: count,
+  execution_failure_cases: count,
+  failed_sessions: count.nullable(),
+  paid_false_revealers: count.nullable(),
+}).refine(cohort => cohort.false_reveals + cohort.truthful_reveals + cohort.no_commitment
+  + cohort.unrevealed_commitments === cohort.evaluated_seats,
+"Reveals and missing ballots must partition the assigned swarm seats")
+  .refine(cohort => cohort.scored_cases <= cohort.assigned_cases
+    && cohort.false_settlements <= cohort.assigned_cases
+    && cohort.execution_failure_cases <= cohort.assigned_cases
+    && (cohort.failed_sessions === null || cohort.failed_sessions <= cohort.sessions)
+    && (cohort.paid_false_revealers === null || cohort.paid_false_revealers <= cohort.false_reveals),
+  "Swarm counts must fit their corresponding denominators");
+
+const swarmSchema = z.object({
+  source_commit: z.string().regex(/^[a-f0-9]{40}$/),
+  cohorts: z.object({
+    principles: swarmCohortSchema,
+    C1: swarmCohortSchema,
+    C2: swarmCohortSchema,
+    replication: swarmCohortSchema,
+  }),
+}).refine(({ cohorts: { C1, C2, replication } }) => {
+  const totals = [
+    "sessions", "assigned_cases", "scored_cases", "evaluated_seats", "false_reveals",
+    "truthful_reveals", "no_commitment", "unrevealed_commitments", "false_settlements",
+    "execution_failure_cases",
+  ] as const;
+  const failedSessions = C1.failed_sessions === null || C2.failed_sessions === null
+    ? null : C1.failed_sessions + C2.failed_sessions;
+  return totals.every(key => replication[key] === C1[key] + C2[key])
+    && replication.failed_sessions === failedSessions;
+}, "Swarm replication totals must reconcile with their C1 and C2 subtotals");
+
+function projectSwarmCohort(cohort: z.infer<typeof swarmCohortSchema>) {
+  return {
+    sessions: cohort.sessions,
+    assignedCases: cohort.assigned_cases,
+    scoredCases: cohort.scored_cases,
+    evaluatedSeats: cohort.evaluated_seats,
+    falseReveals: cohort.false_reveals,
+    truthfulReveals: cohort.truthful_reveals,
+    noCommitment: cohort.no_commitment,
+    unrevealedCommitments: cohort.unrevealed_commitments,
+    falseSettlements: cohort.false_settlements,
+    executionFailureCases: cohort.execution_failure_cases,
+    failedSessions: cohort.failed_sessions,
+    paidFalseRevealers: cohort.paid_false_revealers,
+  };
+}
+
 type Row = z.infer<typeof rowSchema>;
 
 function summarize(rows: Row[]) {
@@ -92,9 +152,10 @@ function summarize(rows: Row[]) {
   }), { assigned: 0, correct: 0, adverse: 0, aborted: 0, unresolved: 0, sessions: 0, completed: 0, failed: 0, interrupted: 0 });
 }
 
-export function projectResearch(currentInput: unknown, historicalInput: unknown) {
+export function projectResearch(currentInput: unknown, historicalInput: unknown, swarmInput: unknown) {
   const current = currentSchema.parse(currentInput);
   const historical = historicalSchema.parse(historicalInput);
+  const swarm = swarmSchema.parse(swarmInput);
   const original = current.cohorts.original_confirmation;
   const recovery = current.cohorts.exploratory_recovery;
   const episodes = historical.runs.flatMap(run => run.episodes);
@@ -122,6 +183,13 @@ export function projectResearch(currentInput: unknown, historicalInput: unknown)
     }),
     original: { captureUtc: original.capture_utc, ...summarize(original.by_model_arm) },
     recovery: { captureUtc: recovery.capture_utc, ...summarize(recovery.by_model_arm) },
+    swarm: {
+      sourceCommit: swarm.source_commit,
+      principles: projectSwarmCohort(swarm.cohorts.principles),
+      C1: projectSwarmCohort(swarm.cohorts.C1),
+      C2: projectSwarmCohort(swarm.cohorts.C2),
+      replication: projectSwarmCohort(swarm.cohorts.replication),
+    },
     historical: {
       date: "2026-10-26",
       unit: historical.unit,

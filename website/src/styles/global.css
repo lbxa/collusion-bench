@@ -118,7 +118,6 @@ figcaption { font-size: .75rem; color: var(--muted-foreground); line-height: 1.6
 .resources-section { margin-top: 3.5rem; text-align: center; }
 .resource-links { display: flex; flex-wrap: wrap; justify-content: center; gap: .3rem 1.4rem; margin-top: 1.25rem; }
 .research-content .resource-note { margin: 1rem auto 0; max-width: 33rem; color: var(--muted-foreground); font-size: .7rem; }
-footer { border-top: 1px solid var(--border); padding: 2rem 1rem; text-align: center; color: var(--muted-foreground); font-size: .75rem; }
 @media (max-width: 640px) {
   .site-header { padding-top: 5rem; }
   .evidence-chain { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }

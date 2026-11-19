@@ -5,7 +5,7 @@
 > experimental controls were exercised correctly. New runs identify their
 > backend and include exact engine settlement evidence.
 
-**Apart Research AI Collusion Sprint -- Oct 23-25, 2026**
+**Exploratory results, October 23–25, 2026**
 
 ---
 
@@ -259,7 +259,3 @@ python run_knockout.py --minimum --episodes 5
 
 **Cost**: $0 with `nvidia/nemotron-3-ultra-550b-a55b:free` (default).
 ~$4-8 per condition with paid models like `qwen/qwen3-235b-a22b`.
-
----
-
-*Built for the Apart Research AI Collusion Sprint, Oct 2026.*

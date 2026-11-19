@@ -14,15 +14,15 @@ Use W&B Launch to execute real training experiments, read their results, and
 choose the next bounded trial. Do not create a local `wandb.init()` run as a
 substitute for compute that was supposed to run through Launch.
 
-## Collusion Sprint scope
+## Collusion benchmark scope
 
 Use this skill for an explicitly requested Launch training workload. Collusion
 benchmark campaigns use the repository's cloud campaign workflow and authorized
 spending ledger. See [AGENTS.md](../../../AGENTS.md) and the
 [harness guide](../../../harness/README.md) for those campaigns.
 
-For work in the sprint's tracking project, use
-`lbxa-corp/apart-collusion-sprint` on `https://api.wandb.ai`. Verify the queue
+For new work in this repository's tracking project, use
+`lbxa-corp/collusion-bench` on `https://api.wandb.ai`. Verify the queue
 and compute authorization independently of project access. From the repository
 root, use the locked harness environment and the repository's W&B environment.
 If the key is in the ignored `.env`, load it in place with `python-dotenv`
@@ -61,8 +61,8 @@ useful and the user authorizes the write:
 
 ```bash
 S=.agents/skills/wandb-autoresearch/scripts/autoresearch_state.py
-uv run --project harness --locked python "$S" load lbxa-corp apart-collusion-sprint --dest .
-uv run --project harness --locked python "$S" save lbxa-corp apart-collusion-sprint --path AUTORESEARCH_STATE.md
+uv run --project harness --locked python "$S" load lbxa-corp collusion-bench --dest .
+uv run --project harness --locked python "$S" save lbxa-corp collusion-bench --path AUTORESEARCH_STATE.md
 ```
 
 ## Compute safety

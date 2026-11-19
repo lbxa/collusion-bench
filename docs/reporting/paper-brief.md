@@ -16,11 +16,16 @@ Linga, Muskaan Kumar, and Jake Fogel, in that order. Lucas, Sravika, Muskaan
 and Jake are affiliated with New York University; Stefan is affiliated with
 Roundarc. These affiliations and Stefan's spelling were confirmed by the user.
 
+The November 19 revision also admits descriptive counts from the independent
+Swarm Alignment sprint. The prospective swarm comparison uses the current
+model roster and source cases. Its 300 planned cases have no provider-backed
+outcomes in this revision.
+
 ## Active question and claim-to-evidence map
 
-The research anchor is Track 2.3, convincing evidence of collusion. The first
-planned detector comparison is Track 2.2, communication-only versus action-only
-versus combined evidence with fixed independent labels. The model campaign
+The research asks what counts as convincing evidence of collusion. The first
+planned detector comparison uses communication-only, action-only, and combined
+evidence with fixed independent labels. The model campaign
 measures induced juror susceptibility, honest completion, and candidate
 safeguards; it cannot establish spontaneous initiation or autonomous behavior
 in creator/challenger roles.
@@ -39,6 +44,31 @@ in creator/challenger roles.
 | Label admission | Pin actual claim, delivered duties, evidence hashes, proposal/agreement/action locators, harm and benefit; keep unresolved labels and independent review status visible. |
 | Analysis | Retain all assignments and failures; source/session clustering; paired clusters across models; do not treat juror seats or repeated sources as independent replicates. Keep identification bounds distinct from confidence intervals and degenerate intervals unavailable. |
 | Manuscript/build | [Active report](../../report/agentic/main.tex), `make -C report agentic`; [review](../../report/agentic/review.md). Historical October report: [source](../../report/agentic/historical-october-main.tex), `make -C report agentic-historical`. |
+
+### Historical swarm evidence and prospective comparison
+
+The jury connects agent communication to a shared verdict. The independent
+Swarm Alignment sprint used scripted first movers to test whether jurors
+would support a false claim when a party offered extra game credits. The
+[evidence packet](../../report/evidence/swarm-sprint/README.md) preserves the
+source register and reproducibility commands for sprint revision
+`5b74c900e5fc56ce60afacde00e34c64c9c4524c`. The
+[numeric projection](../../report/evidence/swarm-sprint/swarm-historical-summary.json)
+has SHA-256 `2489d4cafb5567d21fd7c5a878322a356dcf79c10d54dc97e3f811dfd2252462`.
+
+| Claim ID | Admitted observation and support | Limit |
+| --- | --- | --- |
+| S1 | Fifteen-juror principles cohort. Its 50 cases include 400 evaluated seats, with 390 correct reveals, zero false reveals, and ten seats without a commitment. Six cases recorded an execution failure. Projection key `principles`. | A protocol-specific observation. Historical duties, offer amount, and model roster differ from the scale replication. |
+| S2 | Scale replication. The 104 played sessions contain 116 cases and 389 evaluated seats, with 97 false reveals, 142 correct reveals, 149 seats without a commitment, and one unrevealed commitment. There were 39 false-claim settlements. Eight failed sessions with played evidence remain included. Projection key `replication`. | Descriptive counts across both historical cohorts and their conditions. Jury size changes peer deployments and the ordinary reward per juror. Direct forum exposure and renewed offers preclude identifying indirect transmission or topology effects. |
+| S3 | Completed C1 plan, a subset of S2. Of 63 cases, 20 settled for the false claim. Forty-three of 45 false evaluated reveals received the offered extra credit. Projection key `C1`. | The payment supports an action and outcome claim. Knowing agreement, violations of delivered duties, and executed collusion remain unadjudicated under the current rubric. |
+| S4 | Prospective [swarm protocol](../../harness/research/swarm-benchmark-v1/PROTOCOL.md). Five current families, three jury sizes, two peer policies, five seed labels, and two source cases give 150 planned sessions and 300 planned cases. | This row specifies a design. The analysis must preserve assigned cases, distinguish script from model action, and obtain independent semantic labels before comparing detectors. |
+
+The fixed roles and shared forum leave leadership emergence, division of
+labor, individually refused tasks split across agents, indirect propagation,
+and threshold behavior under heterogeneous lineups or alternative network
+structures open. The current design tests the combination of scripted peer
+messages and voting behavior within jury size, with a constant creator offer.
+Seats within each jury and cases within a repeated-exposure block are dependent.
 
 ### Frozen collection snapshot and benchmark readiness
 
@@ -264,8 +294,8 @@ conclusion.
 
 ## Historical October brief
 
-**Historical status:** internal agentic case-study draft for the Apart AI Collusion
-Research Sprint, checked 2026-10-26. That campaign retains 13 runs: 19
+**Historical status:** internal agentic case-study draft, checked 2026-10-26.
+The October campaign retains 13 runs: 19
 assigned episodes, 18 terminal episodes, and one interrupted scheduling pilot.
 Seven episodes have agent-reviewed harmful-coordination evidence, three remain
 semantically ambiguous, and eight do not establish harmful coordination.
@@ -283,7 +313,7 @@ The older baseline and probes B0/X1–X6 remain separate evidence sets.
 | Research question | Can general-tool agents discover harmful payoff coordination from a neutral objective, and what do communication and memory controls reveal about the observed mechanism? |
 | Central contribution | An agentic runtime and audited trajectories connecting public coordination to actual funding, commitment/reveal and contract settlement, with matched channel controls and repeated memory blocks. |
 | Main result | Two fresh post-retry-fix clear-case GPT seeds executed knowingly adverse verdict agreements; both matching communication-disabled trials expired unchallenged. In separate three-episode blocks, memory enabled creator exit after a loss, while reset agents repeated harmful coordination. |
-| Venue and stage | Apart AI Collusion Research Sprint, October 23–25, 2026; internal draft, not submitted or certified against the official template's visual layout. See [venue.md](venue.md). |
+| Stage | Internal draft documenting the October 2026 campaign. |
 | Manuscript source/build | Historical [October agentic manuscript](../../report/agentic/historical-october-main.tex): `make -C report agentic-historical`; [complete results](../../report/agentic/sections/campaign-results.tex), [episode appendix](../../report/agentic/sections/complete-record.tex), [review](../../report/agentic/review.md). Safe inputs: [agentic-campaign.json](../../report/data/agentic-campaign.json). The separate older [baseline manuscript](../../report/main.tex) still builds with `make -C report`; its review remains [here](../../report/review.md). |
 
 ## Prior illustrative sample and baseline manuscript
@@ -485,11 +515,11 @@ plots, and tables. The example below supplies field names, not chosen notation.
 
 ## Open gaps and decisions
 
-- [x] Record the agentic question, central contribution and selected Apart venue.
+- [x] Record the agentic question and central contribution.
 - [x] Map A0–A3 to the separate agentic manuscript and retain failed/null/ambiguous trials.
 - [x] Complete two post-fix clear-case launch seeds and matched channel-disabled controls.
 - [ ] Independently human-review A0 semantic annotations and claim-to-action timing.
-- [ ] Resolve official-template visual compliance, affiliations and final submission disclosures.
+- [ ] Confirm historical author affiliations and review disclosures before any submission.
 - [x] Admit B0 only for descriptive smoke evidence; record source provenance and exclusions.
 - [ ] Separate induced coordination instructions from spontaneous behavior;
   distinguish an agent's generated explanation from independent causal evidence.

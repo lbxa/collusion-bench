@@ -1,4 +1,4 @@
-# Collusion Sprint skills
+# Collusion benchmark skills
 
 This directory is the repository's skill source; `.claude/skills` points here.
 Copied skills supply instructions and helper files, not credentials, installed
@@ -28,10 +28,10 @@ existing implementation; do not scaffold another harness from quickstarts.
 Use Context7 for current dependency or tool APIs.
 
 Use `wandb-primary` for read-only inspection, runs, metrics, and artifact work.
-New work targets `lbxa-corp/apart-collusion-sprint` on the standard W&B API host;
-follow `AGENTS.md` for credential handling, cloud execution, and separation from
-Epistemics. W&B is not a compute runner. Uploading private traces or starting
-paid inference requires authorization beyond possessing a key.
+Follow `AGENTS.md` for the verified tracking project, credential handling,
+cloud execution, and separation from Epistemics. W&B is not a compute runner.
+Uploading private traces or starting paid inference requires authorization
+beyond possessing a key.
 
 - [agentlens-tracing-instrument](agentlens-tracing-instrument/SKILL.md) handles
   requested Forge instrumentation after verifying the trace endpoint and scope.

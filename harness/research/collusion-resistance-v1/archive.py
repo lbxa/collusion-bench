@@ -720,6 +720,7 @@ def publish_snapshot(
     """The W&B adapter checks destination privacy before any retained content leaves disk."""
     import wandb
 
+    # Private release approval for this campaign is bound to its original project.
     if not scope.api_key or scope.public() != {
         "entity": "lbxa-corp",
         "project": "apart-collusion-sprint",

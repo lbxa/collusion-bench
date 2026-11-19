@@ -20,7 +20,7 @@ def test_scope_defaults_ignore_another_studys_process_scope(tmp_path):
     )
     assert (scope.entity, scope.project, scope.base_url) == (
         "lbxa-corp",
-        "apart-collusion-sprint",
+        "collusion-bench",
         "https://api.wandb.ai",
     )
     assert scope.api_key == "process-key"
@@ -113,7 +113,7 @@ def test_dry_run_prints_only_safe_scope_without_importing_wandb(tmp_path, monkey
     tracking.main()
     output = capsys.readouterr().out
     record = json.loads(output)
-    assert record["scope"]["project"] == "apart-collusion-sprint"
+    assert record["scope"]["project"] == "collusion-bench"
     assert record["runs"] == [{"run": "run-safe", "eligible": True, "files": 1}]
     assert "fixture-private-key" not in output
 
@@ -273,7 +273,7 @@ def test_live_campaign_preserves_id_and_exports_only_safe_progress(tmp_path, mon
             observer.close("complete")
     assert starts[0]["id"] == starts[1]["id"]
     assert starts[0]["resume"] == "allow"
-    assert starts[0]["project"] == "apart-collusion-sprint"
+    assert starts[0]["project"] == "collusion-bench"
     assert metrics[0]["counts/complete"] == 1
     assert metrics[0]["spending/charged_usd"] == 0.2
     assert finishes == [{"exit_code": 0}, {"exit_code": 0}]
@@ -287,7 +287,16 @@ def test_live_campaign_preserves_id_and_exports_only_safe_progress(tmp_path, mon
 
 def test_live_campaign_rejects_cross_project_resume_before_sdk_use(tmp_path, monkeypatch):
     (tmp_path / "campaign-tracking.json").write_text(
-        json.dumps({"campaign_id": "campaign-abc", "scope": {"project": "apart-epistemics-sprint"}})
+        json.dumps(
+            {
+                "campaign_id": "campaign-abc",
+                "scope": {
+                    "entity": "lbxa-corp",
+                    "project": "apart-collusion-sprint",
+                    "base_url": "https://api.wandb.ai",
+                },
+            }
+        )
     )
     monkeypatch.setattr(
         tracking, "verify_access", lambda scope: pytest.fail("scope mismatch reached W&B")
@@ -321,7 +330,7 @@ def upload_sdk(monkeypatch):
             summary={},
             log=lambda table: observed["tables"].append(table),
             log_artifact=lambda artifact: observed["artifacts"].append(artifact),
-            url="https://wandb.ai/lbxa-corp/apart-collusion-sprint/runs/fixture",
+            url="https://wandb.ai/lbxa-corp/collusion-bench/runs/fixture",
             finish=finish,
         )
 

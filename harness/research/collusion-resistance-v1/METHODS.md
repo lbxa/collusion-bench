@@ -2,9 +2,9 @@
 
 This specifies prospective measurement, not findings. Implementation:
 `harness/src/veracity_harness/resistance.py`. Deterministic tests are fixtures,
-not model-behavior evidence. The study is anchored on Track 2.3. Its evidence
-structure permits a later Track 2.2 text/action/combined detector comparison;
-this implementation does not establish that comparison's performance.
+not model-behavior evidence. The study asks what counts as convincing evidence
+of collusion. Its evidence structure permits a later comparison of detectors
+using text, actions, or both.
 
 ## Scope and units
 

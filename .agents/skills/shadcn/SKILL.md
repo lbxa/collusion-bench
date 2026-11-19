@@ -9,7 +9,7 @@ allowed-tools: Bash(bun run shadcn *)
 
 A framework for building ui, components and design systems. Components are added as source code to the user's project via the CLI.
 
-## Collusion Sprint website
+## Collusion research website
 
 Work from `website/`. Translate `npx shadcn@latest` in the upstream examples
 to `bun run shadcn`, which uses the CLI pinned in `website/package.json` and

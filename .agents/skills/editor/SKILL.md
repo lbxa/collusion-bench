@@ -1,6 +1,6 @@
 ---
 name: editor
-description: Write, revise, and review the Collusion Sprint research manuscripts in report/. Use for report structure, prose, mathematical exposition, methods, results, captions, and evidence-backed conclusions.
+description: Write, revise, and review the collusion research manuscripts in report/. Use for report structure, prose, mathematical exposition, methods, results, captions, and evidence-backed conclusions.
 ---
 
 # Editor

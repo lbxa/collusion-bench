@@ -1,9 +1,9 @@
 # Collusion harness upgrade boundary
 
 Date: 2026-11-17. This document describes the repository migration, not a model
-experiment or a results admission. The accepted research anchor is Track 2.3,
-standards of evidence for collusion; the first planned comparison is Track 2.2,
-text-only, action-only, and combined detection.
+experiment or a results admission. The research centers on standards of evidence
+for collusion. The first planned comparison tests text-only, action-only, and
+combined detection.
 
 ## Shared execution, separate science
 
@@ -75,9 +75,10 @@ failure diagnostics. No availability probe in this migration generates text.
 
 Cloud credentials are supplied by this repository's ignored `.env` or the cloud
 worker secret environment. They are not copied from Epistemics or mounted in
-participant containers. W&B uses a separately resolved Collusion destination:
-`lbxa-corp/apart-collusion-sprint` on the standard API host. Tracking and artifact
-storage do not supply compute; a worker must execute the harness independently.
+participant containers. W&B tracking uses the separately resolved project in
+[the harness guide](../../harness/README.md#evidence-inspection-and-tracking). The verification
+record retains the destination used during the upgrade. A worker must execute
+the harness independently of W&B tracking and artifact storage.
 
 The migration supplies no spending authorization. Before a live campaign,
 recover existing state, select the worker, freeze assignments/configuration,

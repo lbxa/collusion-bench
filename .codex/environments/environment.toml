@@ -1,6 +1,6 @@
 # Repository-managed Rust workspace environment.
 version = 1
-name = "apart-collusion-sprint"
+name = "collusion-bench"
 
 [setup]
 script = "bash scripts/setup.sh"

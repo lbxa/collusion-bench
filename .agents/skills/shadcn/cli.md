@@ -2,7 +2,7 @@
 
 Configuration is read from `components.json`.
 
-> Run the examples from the Collusion Sprint's `website/` directory and replace `npx shadcn@latest` with `bun run shadcn` to use the pinned CLI. Check its local `--help` for flags shown in these upstream examples that may require a newer release.
+> Run the examples from the repository's `website/` directory and replace `npx shadcn@latest` with `bun run shadcn` to use the pinned CLI. Check its local `--help` for flags shown in these upstream examples that may require a newer release.
 
 > **IMPORTANT:** Only use the flags documented below. Do not invent or guess flags — if a flag isn't listed here, it doesn't exist. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
 
