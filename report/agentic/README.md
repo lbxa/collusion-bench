@@ -45,6 +45,16 @@ models. Its 300 cases are planned. The active manuscript reports historical
 swarm observations and current confirmation observations under their own
 rules and denominators.
 
+Use the restored `report/data/swarm-sprint/swarm-track-snapshot.json` and the
+locked report environment to regenerate the historical peer figure and build
+the paper. Its two panels cover 288 evaluated seats and 71 assigned cases
+across the six direct-exposure conditions.
+
+```sh
+make -C report agentic-swarm-figure agentic \
+  PYTHON="$PWD/.harness/report-venv/bin/python"
+```
+
 Regenerate the new checked outcome profiles and three distinct cohort/arm
 tables, then build the report:
 

@@ -50,13 +50,17 @@ def summarize_cells(cells: dict) -> tuple[dict[str, int], set[str]]:
     return {"sessions": len(ids), **totals}, set(ids)
 
 
-def summary() -> dict:
-    replication = json.loads(
+def load_replication() -> dict:
+    return json.loads(
         pinned_text(
             INPUTS / "swarm-track-snapshot.json",
             "64375ea66561930617da4689bb475f4e76e9d593853dc2ae6dcd4ed4de89ade3",
         )
     )
+
+
+def summary() -> dict:
+    replication = load_replication()
     for path, digest in replication["analysis_sha256"].items():
         pinned_text(ROOT / path, digest)
     principles_registry = json.loads(

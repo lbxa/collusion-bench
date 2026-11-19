@@ -1,5 +1,29 @@
 # Agentic report review
 
+## 2026-11-19 historical peer comparison figure
+
+- Figure 2 on page 9 maps to S2a in the [paper
+  brief](../../docs/reporting/paper-brief.md). The pinned snapshot passed
+  `python3 -I report/analysis/swarm_historical_summary.py --check`. A separate
+  tally of its case rows matched the figure's four juror outcomes and the
+  false-claim settlement numerators and denominators in all six conditions.
+- `make -C report agentic-swarm-figure` reproduced the vector PDF byte for
+  byte with Python 3.12.11 and Matplotlib 3.11.2. On this host, `PYTHON` supplied
+  the report venv interpreter and its base runtime library through
+  `DYLD_LIBRARY_PATH`. The figure SHA-256 is
+  `153d5ce2f8c5036a128eca65a2c374842396548397da9e52e34cc1299cdf6819`.
+- The clean build from `report/agentic/` used
+  `SOURCE_DATE_EPOCH=1795111200 latexmk -pdf -synctex=1 -interaction=nonstopmode -halt-on-error -file-line-error -outdir=/tmp/collusion-swarm-figure.5KCSv8/final main.tex`
+  and exited 0 with latexmk 4.86a and pdfTeX 1.40.27 (TeX Live 2025).
+  The build log is `/tmp/collusion-swarm-figure.5KCSv8/final-build.log`.
+  The 22-page review copy is `build/swarm-peer-review.pdf`, with embedded
+  fonts, zero TeX warnings, and SHA-256
+  `f0437e3b97bcec456a4fb02ab8bf29ff1e00203b1f01e230ef4e4e6f3af01f3d`.
+- Rendered all pages at 120 dpi. Pages 1–8 and 12–22 match the corresponding
+  previously reviewed pages pixel for pixel. Inspected pages 9–11 and the
+  figure in grayscale at its 6.5-inch print width. The counts are descriptive
+  observations of historical juror actions and case settlements.
+
 ## 2026-11-19 swarm evidence integration
 
 - The working paper keeps the evidence rubric and planned detector comparison.

@@ -2,7 +2,7 @@ PYTHON ?= python3
 LATEXMK ?= latexmk
 COLLECTION_DATA ?= data/collusion-progress-final-20261117
 
-.PHONY: all agentic agentic-historical agentic-status-figure agentic-pilot-table agentic-collection-figures figures agentic-figures tables clean
+.PHONY: all agentic agentic-historical agentic-status-figure agentic-pilot-table agentic-collection-figures agentic-swarm-figure figures agentic-figures tables clean
 
 all:
 	$(LATEXMK) -pdf -synctex=1 -interaction=nonstopmode -halt-on-error -file-line-error -outdir=build main.tex
@@ -29,6 +29,10 @@ agentic-pilot-table:
 agentic-collection-figures:
 	mkdir -p agentic/images agentic/tables build/matplotlib
 	MPLCONFIGDIR="$(CURDIR)/build/matplotlib" $(PYTHON) analysis/progress_figures.py --data-dir $(COLLECTION_DATA) --output-dir agentic/images --table-dir agentic/tables
+
+agentic-swarm-figure:
+	mkdir -p agentic/images build/matplotlib
+	MPLCONFIGDIR="$(CURDIR)/build/matplotlib" $(PYTHON) analysis/swarm_peer_figure.py --output agentic/images/swarm-peer-outcomes.pdf
 
 figures:
 	mkdir -p figures build/matplotlib
