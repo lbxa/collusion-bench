@@ -5,11 +5,17 @@
   "workers_dev": true,
   "previews": {},
   "build": {
-    "command": "bun run build"
+    "command": "bun run build",
   },
+  "routes": [
+    {
+      "pattern": "collusion.lbxa.net",
+      "custom_domain": true,
+    },
+  ],
   "assets": {
     "directory": "./dist",
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page"
-  }
+    "not_found_handling": "404-page",
+  },
 }
