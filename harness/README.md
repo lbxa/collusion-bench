@@ -292,6 +292,8 @@ spontaneous model behavior. Do not silently skip Docker or chain checks.
 
 ### 2026-11-19
 
+- Detach owned participant and gateway endpoints before deleting arena
+  containers so Docker can resolve the attachments during cleanup.
 - Keep injected test models outside paid-request accounting so campaign
   integration fixtures can verify the shared ledger stays at zero.
 - Reuse the campaign controller for swarm protocols and the five-model peer

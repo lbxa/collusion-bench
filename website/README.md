@@ -7,14 +7,16 @@ collusion research project.
 
 ```sh
 bun install --frozen-lockfile
-bun run sync:research
 bun run dev -- --port 4330
 ```
 
 ## Evidence and updates
 
-`data-sources.json` pins the final November collection snapshot, the historical
-October and swarm aggregates, the current working paper and the October paper.
+`public/data/research.json` is the checked-in aggregate snapshot used by the page
+and offered as the JSON download. The two paper PDFs are checked in under
+`public/files/`. [Publication provenance](data-sources.json) records the original
+report inputs and paper hashes.
+
 The November readout includes five models, six conditions and a separate
 recovery cohort. Assigned outcomes include aborts and unresolved cases.
 Resistance estimates and confidence intervals remain unavailable pending
@@ -22,16 +24,9 @@ independent review. October keeps its original labels and assignments. The
 [swarm aggregate](../report/evidence/swarm-sprint/) records votes and settlements
 from the principles and scale campaigns under their original conditions.
 
-`scripts/sync-research.ts` validates report data with Zod and emits identical,
-safe JSON projections in `src/data/` and `public/data/`. It copies verified PDFs
-from existing report builds. Later builds retain the pinned copies. The current
-numerical readout is on the page, in the working paper and in the downloadable JSON.
-
-When new results are admitted, update the report brief and source hashes first,
-then synchronise and review the site copy. Do not select the latest directory
-automatically, change claims because a file exists, or export raw trajectories.
-The existing report exporter owns stratified means and uncertainty; the website
-does not recompute scores from pooled counts.
+For a future publication, review the evidence in the report, then update the
+public files and their provenance directly. Publish only reviewed aggregates
+and approved paper PDFs. The report owns stratified means and uncertainty.
 
 ## Boundaries and checks
 
@@ -58,8 +53,8 @@ The first draft's checks and remaining gaps are recorded in [REVIEW.md](REVIEW.m
 ## Cloudflare Workers
 
 `wrangler.jsonc` names the Worker `collusion-bench` and serves `dist/` through
-Workers Static Assets. Wrangler runs `bun run build` before deploying, including the
-pinned-data checks. No server entrypoint or Astro server adapter is needed.
+Workers Static Assets. Wrangler runs `bun run build` before deploying the
+checked-in snapshots.
 The custom `src/pages/404.astro` builds to `dist/404.html`; Workers serves it
 with a 404 status for missing paths, including nested URLs.
 
@@ -78,12 +73,14 @@ in the config. The default endpoint uses `workers.dev`.
 For Cloudflare Git integration, select `lbxa/collusion-bench`, set the root
 directory to `website`, and use `bun run deploy` as the deploy command. Use
 `collusion-bench` as the Worker name. Install dependencies with
-`bun install --frozen-lockfile`. On a fresh checkout, restore the
-[pinned research inputs](../report/README.md#restore-experimental-data) before
-Wrangler runs the build.
+`bun install --frozen-lockfile`. A fresh checkout contains all files needed to
+build and deploy the site.
 
 ## Changelog
 
+- 2026-11-19: Keep one checked-in research snapshot for rendering and download.
+  The site builds from its own files. Update published evidence and provenance
+  directly after review. See the [publication decision](../docs/decisions/publish-website-research-as-checked-in-snapshots.md).
 - 2026-11-19: Add the historical swarm aggregates and display the principles
   and scale cohorts alongside the current benchmark. Seat counts retain
   missing commitments, and C1/C2 remain subtotals of the scale replication.

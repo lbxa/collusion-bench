@@ -1,6 +1,6 @@
 import asyncio
 from threading import Barrier, Event
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 from docker.errors import APIError, NotFound
@@ -118,7 +118,7 @@ def test_cleanup_removes_all_containers_before_networks_and_mounts(monkeypatch):
         assert arena.staging.exists()
 
     network.remove.side_effect = remove_network
-    arena.networks.append(network)
+    arena.networks.append((network, []))
     volume = MagicMock()
 
     def remove_volume(**kwargs):
@@ -142,7 +142,7 @@ def test_cleanup_attempts_remaining_resources_after_removal_failure(monkeypatch,
     failed, other, network, volume = (MagicMock() for _ in range(4))
     failed.remove.side_effect = error("Fixture removal failure")
     arena.containers.extend([failed, other])
-    arena.networks.append(network)
+    arena.networks.append((network, []))
     arena.volumes.append(volume)
     if error is APIError:
         with pytest.raises(RuntimeError, match="1 resources"):
@@ -203,6 +203,39 @@ def test_staging_is_removed_even_when_container_cleanup_fails(monkeypatch):
     assert not arena.staging.exists()
 
 
+@pytest.mark.parametrize("detach_fails", [False, True])
+def test_cleanup_detaches_owned_endpoints_before_removing_containers(
+    monkeypatch, tmp_path, detach_fails
+):
+    client, gateway, participant, network = (MagicMock() for _ in range(4))
+    client.api._proxy_configs = {}
+    client.containers.create.side_effect = [gateway, participant]
+    client.networks.create.return_value = network
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("detach-endpoints-fixture")
+
+    def disconnect(container, *, force):
+        assert container in (gateway, participant)
+        assert force is True
+        gateway.remove.assert_not_called()
+        participant.remove.assert_not_called()
+        if detach_fails:
+            raise APIError("Fixture disconnect failure")
+
+    network.disconnect.side_effect = disconnect
+    arena.start_gateway(tmp_path, "Interface")
+    arena.start_participant("juror-1", tmp_path, gateway)
+    arena.close()
+
+    assert network.disconnect.call_args_list == [
+        call(participant, force=True),
+        call(gateway, force=True),
+    ]
+    gateway.remove.assert_called_once_with(force=True)
+    participant.remove.assert_called_once_with(force=True)
+    network.remove.assert_called_once_with()
+
+
 def test_every_resource_carries_the_harness_run_label_for_cleanup(monkeypatch):
     client = MagicMock()
     client.api._proxy_configs = {"no_proxy": "localhost,original.internal"}
@@ -214,9 +247,9 @@ def test_every_resource_carries_the_harness_run_label_for_cleanup(monkeypatch):
     arena.start_participant("juror-1", arena.staging / "juror-1", gateway)
     arena.create_shared_volume()
     label = {"veracity.session": "run-abc123def456"}
-    for call in client.containers.create.call_args_list:
-        assert label.items() <= call.kwargs["labels"].items()
-        assert call.kwargs["environment"]["NO_PROXY"] == (
+    for create_call in client.containers.create.call_args_list:
+        assert label.items() <= create_call.kwargs["labels"].items()
+        assert create_call.kwargs["environment"]["NO_PROXY"] == (
             "localhost,original.internal,veracity-api,host.docker.internal"
         )
     assert label.items() <= client.networks.create.call_args.kwargs["labels"].items()

@@ -1,11 +1,11 @@
 ---
-import study from "../data/research.json";
-import type { ResearchData } from "../lib/research-export";
+import study from "../../public/data/research.json";
 import ConditionSelect from "./ConditionSelect";
 
-type Model = ResearchData["models"][number];
+type Model = (typeof study.models)[number];
+type Outcome = Model["outcomes"]["primary"];
 const shortLabels: Partial<Record<string, string>> = { deepseek: "DS V4", glm: "GLM", kimi: "Kimi", gptoss: "GPT OSS", inkling: "Inkling" };
-const models: (Pick<Model, "label" | "outcomes"> & { id: string })[] = study.models;
+const models: (Pick<Model, "id" | "label"> & { outcomes: Record<string, Outcome> })[] = study.models;
 const outcomes = [
   { key: "correct", label: "Source-correct" },
   { key: "adverse", label: "Source-adverse" },

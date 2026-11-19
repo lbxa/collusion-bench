@@ -38,6 +38,7 @@ and source hashes.
 Transcripts, operator labels, private paths, raw model calls, recovery state
 and provider credentials are excluded.
 
-New confirmation results require reviewed report evidence and an explicit
-source-manifest update. The website never fills missing values with zero,
-relabels October cases under newer rules, or imports Epistemics findings.
+New confirmation results require reviewed report evidence and a direct update
+to the published snapshot and its provenance. The website never fills missing
+values with zero, relabels October cases under newer rules, or imports
+Epistemics findings.

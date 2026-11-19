@@ -1,4 +1,22 @@
-# Collusion Bench
+<p align="center">
+  <img src="docs/assets/banner.webp" alt="Classical landscape with a giant overlooking mountains beneath a cloudy sky" width="100%">
+</p>
+
+<h1 align="center">Collusion Bench</h1>
+
+<p align="center">
+  <strong>A research benchmark for emergent collusion in LLM agents.</strong>
+</p>
+
+<p align="center">
+  <a href="docs/benchmark.md">Benchmark protocol</a> &middot;
+  <a href="CONSTITUTION.md">Constitution</a> &middot;
+  <a href="#development">Getting started</a> &middot;
+  <a href="harness/README.md">Harness</a> &middot;
+  <a href="docs/api.md">API</a>
+</p>
+
+---
 
 A versioned HTTP API for the Veracity dispute game in [SPEC.md](SPEC.md).
 The Rust service connects to a non-upgradeable Solidity contract that enforces

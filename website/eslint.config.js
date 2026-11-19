@@ -41,11 +41,6 @@ export default [
       'no-unused-vars': 'off',
     },
   },
-  {
-    files: ['scripts/**/*.ts'],
-    rules: { 'no-console': 'off' },
-  },
-
   // Astro files specific configuration
   {
     files: ['**/*.astro'],

@@ -19,7 +19,7 @@ Sravika Linga, Muskaan Kumar and Jake Fogel.
 Report snapshots and provenance are stored in the private Hugging Face bucket
 [`lbxa/collusion-bench`](https://huggingface.co/buckets/lbxa/collusion-bench).
 With bucket access, run this from the repository root before regenerating
-report figures, tables, or the website research export:
+report figures or tables.
 
 ```sh
 hf buckets sync hf://buckets/lbxa/collusion-bench/report/data report/data

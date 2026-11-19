@@ -83,6 +83,6 @@ and historical papers are distinct, verified download snapshots.
 
 Workers deployment is configured in `wrangler.jsonc`; no public deployment was
 performed in this change and no custom domain is configured. See `README.md`
-for deployment commands. New evidence needs the admission and synchronisation
-steps before changing public claims. The default development command uses port
-4330.
+for deployment commands. New evidence requires report review and a direct
+update to the published files before changing public claims. The default
+development command uses port 4330.

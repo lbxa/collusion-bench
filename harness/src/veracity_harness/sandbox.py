@@ -1,6 +1,7 @@
 """Docker lifecycle and the small provider adapter required by Deep Agents."""
 
 import asyncio
+import logging
 import os
 import secrets
 import shlex
@@ -15,8 +16,11 @@ from deepagents.backends.protocol import ExecuteResponse, FileDownloadResponse, 
 from deepagents.backends.sandbox import BaseSandbox
 from docker.errors import APIError, NotFound
 from docker.models.containers import Container
+from docker.models.networks import Network
 
 import docker
+
+LOG = logging.getLogger(__name__)
 
 # Participant-visible layout: neutral names that do not reveal a constructed test.
 MOUNT = "/veracity"
@@ -127,7 +131,7 @@ class DockerArena:
         # Every resource is labelled so cleanup never depends on container names.
         self.labels = {"veracity.run": run_id, "veracity.session": session or run_id}
         self.containers: list[Container] = []
-        self.networks = []
+        self.networks: list[tuple[Network, list[Container]]] = []
         self.volumes = []
         # Host directories bind-mounted into this arena's containers. close() deletes
         # them only after the containers: removing a mount source first crashes
@@ -277,7 +281,8 @@ class DockerArena:
             internal=True,
             labels=self.labels,
         )
-        self.networks.append(network)
+        endpoints = [gateway]
+        self.networks.append((network, endpoints))
         network.connect(gateway, aliases=["veracity-api"])
         container = self.client.containers.create(
             IMAGE,
@@ -308,6 +313,7 @@ class DockerArena:
             nano_cpus=1_000_000_000,
         )
         self.containers.append(container)
+        endpoints.append(container)
         container.start()
         container.reload()
         address = container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
@@ -343,9 +349,33 @@ class DockerArena:
                 resource.remove(**({"force": True} if force else {}))
             except NotFound:
                 pass
-            except APIError:
+            except APIError as error:
+                LOG.warning(
+                    "Docker resource removal failed run=%s kind=%s status=%s",
+                    self.run_id,
+                    kind,
+                    error.status_code,
+                )
                 return kind
             return None
+
+        # Detach owned endpoints while Docker still knows both container IDs.
+        # On Docker Desktop, forced container deletion can leave endpoints that
+        # block network removal after the container is gone.
+        for network, endpoints in reversed(self.networks):
+            for container in reversed(endpoints):
+                try:
+                    network.disconnect(container, force=True)
+                except NotFound:
+                    # The endpoint may already be absent after partial startup.
+                    pass
+                except (APIError, OSError) as error:
+                    # The resource removals below determine whether cleanup failed.
+                    LOG.warning(
+                        "Docker endpoint detach failed run=%s error_type=%s",
+                        self.run_id,
+                        type(error).__name__,
+                    )
 
         failures = []
         with ThreadPoolExecutor(max_workers=LIFECYCLE_WORKERS) as pool:
@@ -353,7 +383,7 @@ class DockerArena:
             # particular, bind mounts outlive all containers, even on failure.
             for resources, kind, force in (
                 (self.containers, "container", True),
-                (self.networks, "network", False),
+                ([network for network, _ in self.networks], "network", False),
                 (self.volumes, "volume", True),
             ):
                 results = pool.map(remove, reversed(resources), repeat(kind), repeat(force))
