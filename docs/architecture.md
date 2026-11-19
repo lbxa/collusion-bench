@@ -23,9 +23,12 @@ data, retained for stored-configuration compatibility. They do not drive game
 rules, scheduling, agent execution, or evaluation. The engine owns no experiment
 or scenario lifecycle. Tests must exercise registration without these tags.
 
-The retired hackathon handoff is not an interface contract. Version 1 preserves
-integer base units, odd juries of three through seven, deposit-with-commit,
-domain-separated commit/reveal, and immutable chain-time deadlines.
+The retired hackathon handoff is not an interface contract. Contract ABI 2
+preserves integer base units, deposit-with-commit, domain-separated commit/reveal,
+and immutable chain-time deadlines. It extends the ABI 1 mechanism with odd
+juries of three through fifteen and transfers of existing withdrawal credit.
+New deployments require ABI 2; historical ABI 1 evidence and recovery databases
+remain separate and are not migrated into a new financial world.
 
 ## Ownership and boundaries
 

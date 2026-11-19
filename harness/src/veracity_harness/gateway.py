@@ -12,12 +12,13 @@ import time
 import uuid
 from collections.abc import Callable
 from pathlib import Path
+from typing import Literal
 
 import aiohttp
 from aiohttp import web
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
-from game_api.generated import ChatPage, OperationView
+from game_api.generated import ChatPage, ForumMessagePage, MessagePage, OperationView
 
 MAX_BODY = 128 * 1024
 MAX_RESPONSE = 1024 * 1024
@@ -63,6 +64,8 @@ class GatewayPolicy(BaseModel):
     hidden_fields: frozenset[str] = OPERATOR_TAGS
     # Engine actor id -> the account name participants see, in both directions.
     aliases: dict[str, str] = Field(default_factory=dict)
+    # Frozen experiment roster, including actors without a running sandbox.
+    participant_ids: tuple[str, ...] = ()
     # The current case's vouchers by id, served by the gateway's records service, and
     # how many distinct ones each account may retrieve for this case.
     records: dict[str, dict] = Field(default_factory=dict)
@@ -73,16 +76,29 @@ class GatewayPolicy(BaseModel):
     anonymous_jury: bool = False
     mask_salt: str = Field(default="", repr=False)
 
+    @model_validator(mode="after")
+    def validate_participant_roster(self):
+        if self.anonymous_jury and not self.participant_ids:
+            raise ValueError("Anonymous juries require the frozen participant roster")
+        if self.participant_ids and (
+            len(self.participant_ids) != len(set(self.participant_ids))
+            or any(not actor or actor == "operator" for actor in self.participant_ids)
+            or not {identity.actor_id for identity in self.identities.values()}
+            <= set(self.participant_ids)
+        ):
+            raise ValueError("Gateway identities must belong to a unique participant roster")
+        return self
+
     def names_for(self, viewer: str, case: str | None) -> dict[str, str]:
         """The account names one viewer sees for one case."""
         if not self.anonymous_jury or viewer.startswith("juror-"):
             return self.aliases
         target = case or self.episode_id
-        # The engine names jurors juror-1 to juror-7 whatever the roster size.
         masks = {
             actor: "juror-"
             + hashlib.sha256(f"{self.mask_salt}/{target}/{actor}".encode()).hexdigest()[:4]
-            for actor in (f"juror-{number}" for number in range(1, 8))
+            for actor in self.participant_ids
+            if actor.startswith("juror-")
         }
         return {**self.aliases, **masks}
 
@@ -92,6 +108,34 @@ class GatewayPolicy(BaseModel):
     private_history: bool
     private_communication_prohibited: bool
     transfers: bool = False
+    message_delivery: Literal["normal", "suppressed"] = "normal"
+
+    def project_message_read(self, path: str, payload: dict, after: int) -> tuple[dict, dict]:
+        """Project only recipient read views, leaving upstream storage and receipts intact."""
+        if path.endswith("/forum/messages"):
+            page = ForumMessagePage.model_validate(payload)
+        elif path.startswith("/v1/chats/") and path.endswith("/messages"):
+            page = MessagePage.model_validate(payload)
+        elif path.endswith("/chats"):
+            chats = ChatPage.model_validate(payload)
+            if self.message_delivery == "suppressed":
+                return chats.model_copy(
+                    update={"chats": [], "has_more": False, "next_after": None}
+                ).model_dump(mode="json"), {"chats_withheld": len(chats.chats)}
+            return payload, {"chats_withheld": 0}
+        else:
+            return payload, {}
+        count = len(page.messages)
+        suppressed = self.message_delivery == "suppressed"
+        if suppressed:
+            # Echo only the caller's cursor, never an upstream sequence/count.
+            payload = page.model_copy(
+                update={"messages": [], "has_more": False, "next_after": after}
+            ).model_dump(mode="json")
+        return payload, {
+            "messages_returned": 0 if suppressed else count,
+            "messages_withheld": count if suppressed else 0,
+        }
 
     def permits(self, method: str, path: str) -> bool:
         episode = re.escape(self.episode_id)
@@ -237,6 +281,8 @@ def participant_schema(document: dict, paths: dict, hidden: frozenset[str] = OPE
 def create_gateway(
     policy_source: Callable[[], GatewayPolicy], interface: str, audit_path: Path | None = None
 ) -> web.Application:
+    delivery_key = web.RequestKey("delivery_observation", dict)
+
     @web.middleware
     async def audit(request, handler):
         try:
@@ -279,6 +325,7 @@ def create_gateway(
             "method": request.method,
             "endpoint": endpoint,
             "time_ns": time.time_ns(),
+            "message_delivery": current.message_delivery,
         }
         if record and record.group(1):
             event["record_id"] = record.group(1)
@@ -298,7 +345,7 @@ def create_gateway(
             status = error.status
             raise
         finally:
-            append(event="response", status=status)
+            append(event="response", status=status, **request.get(delivery_key, {}))
 
     app = web.Application(client_max_size=MAX_BODY, middlewares=[audit])
     session_key = web.AppKey("upstream", aiohttp.ClientSession)
@@ -455,7 +502,17 @@ def create_gateway(
                             raise web.HTTPBadGateway(text="Upstream operation identity mismatch")
                         operations.setdefault(actor_scope, set()).add(operation.operation_id)
                 if response.content_type == "application/json":
-                    shown = renamed(json.loads(payload), names)
+                    shown = json.loads(payload)
+                    if request.method == "GET" and response.status == 200:
+                        shown, observed = policy.project_message_read(
+                            request.path,
+                            shown,
+                            int(request.query.get("after", "0"))
+                            if request.path.endswith("/messages")
+                            else 0,
+                        )
+                        request[delivery_key] = observed
+                    shown = renamed(shown, names)
                     payload = json.dumps(omit_fields(shown, policy.hidden_fields)).encode()
                 return web.Response(
                     body=payload,

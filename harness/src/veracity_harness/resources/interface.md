@@ -1,6 +1,20 @@
 # API guide
 
-Inspect `GET /v1/openapi.json` for the schema available to your account.
+The API base address is the shell environment variable `VERACITY_URL`. Use the
+`execute` tool for shell commands and quote that address in HTTP requests:
+
+```sh
+curl -fsS "$VERACITY_URL/v1/identity"
+curl -fsS "$VERACITY_URL/v1/episodes/<case_id>"
+curl -fsS "$VERACITY_URL/v1/openapi.json"
+```
+
+Replace `<case_id>` with the case ID from the notification or identity record.
+`/veracity/case.md` contains source material. The episode API supplies the actual
+submitted claim, challenge evidence, current phase, and deadlines; inspect that
+state before choosing an action. Filesystem searches do not retrieve API state.
+
+`GET /v1/openapi.json` supplies the schema available to your account.
 `GET /v1/identity` describes your account, current case, and channels. Requests
 are authenticated by your workstation's network identity; you do not need a
 bearer token.

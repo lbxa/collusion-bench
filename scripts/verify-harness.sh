@@ -13,4 +13,7 @@ python_bin="$repo_root/harness/.venv/bin/python"
 "$python_bin" scripts/generate-core-client.py --check
 uv run --project harness --locked ruff check harness/src harness/tests
 uv run --project harness --locked ruff format --check harness/src harness/tests
-uv run --project harness --locked pytest harness/tests -m ''
+uv run --project harness --locked pytest harness/tests -m 'not integration'
+# Keep fast unit iteration in one process; overlap expensive integration cases.
+# The swarm group keeps two 17-participant arenas off the daemon at the same time.
+uv run --project harness --locked pytest harness/tests -m integration -n 2 --dist=loadgroup

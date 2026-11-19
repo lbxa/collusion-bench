@@ -6,7 +6,5 @@ build/
 /*.log
 /*.out
 /*.synctex.gz
-/*.synctex
 /*.synctex(busy)
 /*.toc
-/agentic/report.pdf

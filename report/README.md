@@ -1,24 +1,29 @@
 # Veracity research reports
 
-The current project target is the **AI x Epistemics Research Sprint,
-November 13–15, 2026**; see [venue requirements](../docs/reporting/venue.md)
-and [prior-work disclosure](../docs/epistemics-2026-disclosure.md). The manuscripts
-below contain historical research and have not been updated into a submission
-for this sprint. New contributions and results must be identified separately.
-
 The current agentic study is [Payoff Coordination Against Truthful Claims](agentic/main.tex).
 Build it with `make -C report agentic`; its PDF is `agentic/build/main.pdf`.
 It uses the separate [agentic campaign snapshot](data/agentic-campaign.json),
 [reproduction guide](agentic/README.md) and [review record](agentic/review.md).
-It does not pool the older results below. Complete experiment JSONs, when supplied
-separately, live in the ignored local path
-`harness/results/campaign-2026-10-26/export/`. Compiled PDFs are local build
-products; a source checkout includes the manuscript, numeric snapshots, and
-required figures.
-The manuscript covers all 13 agentic campaign runs, the 19 assigned episodes, and a
+It does not pool the older results below.
+Complete experiment JSONs are in the
+[October campaign export](../harness/archive/october-2026/results/campaign-2026-10-26/export/).
+The archive guide gives the [restore command](../harness/archive/october-2026/README.md).
+The published PDF copy is [agentic/report.pdf](agentic/report.pdf).
+It includes all 13 agentic campaign runs, the 19 assigned episodes, and a
 run-by-run interpretation; Appendix B contains the complete episode tables
 and evidence locators. The named authors are Lucas Barbosa, Stefan Gazana,
 Sravika Linga, Muskaan Kumar and Jake Fogel.
+
+## Restore experimental data
+
+Report snapshots and provenance are stored in the private Hugging Face bucket
+[`lbxa/collusion-bench`](https://huggingface.co/buckets/lbxa/collusion-bench).
+With bucket access, run this from the repository root before regenerating
+report figures, tables, or the website research export:
+
+```sh
+hf buckets sync hf://buckets/lbxa/collusion-bench/report/data report/data
+```
 
 ## Earlier baseline report
 
@@ -119,8 +124,7 @@ from `report/analysis/`.
 
 `make -C report tables` also renders `tables/model-benchmark.tex` from the committed
 snapshot. To admit model-screen runs, fetch their W&B summaries from the repository root:
-`set -a && . ./.env && set +a && harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --project <entity/project> --since <UTC time>`.
-Choose the W&B project explicitly; no project is selected by default.
+`set -a && . ./.env && set +a && harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --since <UTC time>`.
 Only runs created at or after `--since` enter the snapshot, and only finished runs of
 one condition enter the table. Set `featured` (a column name) or `condition`
 (`{"cell": ..., "prohibited": ..., "party_auditor_offers": ...}`) in the snapshot to override the defaults:
@@ -169,11 +173,10 @@ comparisons remain future work. This is not a submission-ready empirical study.
 
 ## Changelog
 
-### 2026-10-28
+### 2026-11-19
 
-- Keep raw campaigns and compiled PDF/debug output local. Preserve source,
-  locked analysis dependencies, compact snapshots, and figure inputs needed
-  to rebuild the report without downloading the full historical campaign.
+- Store the experimental data in the private `lbxa/collusion-bench` bucket.
+  Restore it at `report/data/` so report and website regeneration use the frozen inputs.
 
 ### 2026-10-26
 
@@ -181,7 +184,7 @@ comparisons remain future work. This is not a submission-ready empirical study.
   evidence snapshot and claim mapping. The older structured-action probes use
   a different protocol and cannot be pooled into its behavioral conclusions.
 - Publish the complete campaign's raw JSONs and original checkpoints under
-  `harness/results/` following explicit user authorization; use Git LFS for
+  `harness-v2/results/` following explicit user authorization; use Git LFS for
   large evidence files. Other campaign outputs remain ignored by default.
 - Remove the agentic draft's LLM Usage and Execution/accounting appendices at
   the user's request. Preserve methodological provenance and unresolved review

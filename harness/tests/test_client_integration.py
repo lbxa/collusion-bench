@@ -12,6 +12,55 @@ from game_api.local_engine import LocalEngine
 pytestmark = pytest.mark.integration
 
 
+async def test_local_engine_authorizes_the_full_fifteen_juror_roster():
+    episode_id = f"sdk_{uuid.uuid4().hex}"
+    async with LocalEngine() as local:
+        client = local.client
+        await client.wait_operation(
+            await client.register_episode(
+                RegisterEpisode(
+                    episode_id=episode_id,
+                    creator_id="creator",
+                    challenger_id="challenger",
+                    juror_ids=[f"juror-{n}" for n in range(1, 16)],
+                    treasury_id="treasury",
+                    parameters=ProtocolParameters(
+                        beta_wei="1000",
+                        gamma_bps=1000,
+                        posting_duration_secs=300,
+                        challenge_duration_secs=300,
+                        commit_duration_secs=300,
+                        reveal_duration_secs=300,
+                    ),
+                ),
+                idempotency_key="register-fifteen",
+            )
+        )
+        await client.wait_operation(
+            await client.post_claim(
+                episode_id, "creator", "A recorded claim.", idempotency_key="claim"
+            )
+        )
+        await client.wait_operation(
+            await client.challenge(
+                episode_id, "challenger", "A recorded objection.", idempotency_key="challenge"
+            )
+        )
+        operation = await client.wait_operation(
+            await client.commit(
+                episode_id,
+                "juror-15",
+                "CREATOR_SUPPORTED",
+                "Recorded assessment.",
+                idempotency_key="commit-fifteen",
+            )
+        )
+        assert operation.actor_id == "juror-15" and operation.transaction.receipt.confirmed
+        episode = await client.get_episode(episode_id)
+        assert len(episode.jurors) == 15
+        assert next(j for j in episode.jurors if j.actor_id == "juror-15").commitment is not None
+
+
 class ClientIntegrationTests(unittest.IsolatedAsyncioTestCase):
     async def test_explicit_actions_reconnect_pending_reconciliation_and_exact_settlement(self):
         # Larger than a binary64 integer can retain. The local signers are funded

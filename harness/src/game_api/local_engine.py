@@ -131,15 +131,7 @@ class LocalEngine:
             self.client = CoreClient(
                 startup.api_url,
                 operator_token="dev-operator",
-                participant_tokens={
-                    actor: f"dev-{actor}"
-                    for actor in [
-                        "creator",
-                        "challenger",
-                        "treasury",
-                        *[f"juror-{i}" for i in range(1, 8)],
-                    ]
-                },
+                participant_tokens={actor: f"dev-{actor}" for actor in startup.participant_ids},
                 operation_timeout=self.operation_timeout,
             )
             await self.client.start()

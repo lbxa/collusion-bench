@@ -1,11 +1,14 @@
 """Docker lifecycle and the small provider adapter required by Deep Agents."""
 
+import asyncio
 import os
 import secrets
 import shlex
 import shutil
 import subprocess
 import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from itertools import repeat
 from pathlib import Path, PurePosixPath
 
 from deepagents.backends.protocol import ExecuteResponse, FileDownloadResponse, FileUploadResponse
@@ -26,6 +29,8 @@ IMAGE = "veracity-agent-sandbox:1"
 PROJECT = Path(__file__).resolve().parents[2]
 RESOURCES = Path(__file__).parent / "resources"
 MAX_OUTPUT = 64 * 1024
+# Stay below the Docker client's default connection pool size.
+LIFECYCLE_WORKERS = 4
 
 
 class DockerSandbox(BaseSandbox):
@@ -308,29 +313,51 @@ class DockerArena:
         address = container.attrs["NetworkSettings"]["Networks"][network.name]["IPAddress"]
         return DockerSandbox(container), address
 
+    async def start_participants(
+        self, documents: dict[str, Path], gateway: Container, shared: str | None = None
+    ) -> dict[str, tuple[DockerSandbox, str]]:
+        def start():
+            # Drain all workers on failure before the caller starts cleanup.
+            with ThreadPoolExecutor(max_workers=LIFECYCLE_WORKERS) as pool:
+                started = pool.map(
+                    self.start_participant,
+                    documents,
+                    documents.values(),
+                    repeat(gateway),
+                    repeat(shared),
+                )
+                return dict(zip(documents, started, strict=True))
+
+        startup = asyncio.create_task(asyncio.to_thread(start))
+        try:
+            return await asyncio.shield(startup)
+        except asyncio.CancelledError:
+            # Cancelling an await cannot stop Docker calls already running in
+            # threads. Wait for their ownership records before allowing cleanup.
+            await asyncio.gather(startup, return_exceptions=True)
+            raise
+
     def close(self):
+        def remove(resource, kind, force):
+            try:
+                resource.remove(**({"force": True} if force else {}))
+            except NotFound:
+                pass
+            except APIError:
+                return kind
+            return None
+
         failures = []
-        for container in reversed(self.containers):
-            try:
-                container.remove(force=True)
-            except NotFound:
-                pass
-            except APIError:
-                failures.append("container")
-        for network in reversed(self.networks):
-            try:
-                network.remove()
-            except NotFound:
-                pass
-            except APIError:
-                failures.append("network")
-        for volume in self.volumes:
-            try:
-                volume.remove(force=True)
-            except NotFound:
-                pass
-            except APIError:
-                failures.append("volume")
+        with ThreadPoolExecutor(max_workers=LIFECYCLE_WORKERS) as pool:
+            # Each phase finishes before its dependencies are removed. In
+            # particular, bind mounts outlive all containers, even on failure.
+            for resources, kind, force in (
+                (self.containers, "container", True),
+                (self.networks, "network", False),
+                (self.volumes, "volume", True),
+            ):
+                results = pool.map(remove, reversed(resources), repeat(kind), repeat(force))
+                failures.extend(result for result in results if result is not None)
         shutil.rmtree(self.staging, ignore_errors=True)
         self.client.close()
         if failures:

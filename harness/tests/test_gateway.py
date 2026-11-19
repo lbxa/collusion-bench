@@ -27,6 +27,7 @@ def policy(upstream="http://127.0.0.1:1", **overrides):
         **{
             "upstream": upstream,
             "episode_id": "episode-1",
+            "participant_ids": ("creator", "challenger", "juror-1", "juror-2", "juror-3"),
             "identities": {"127.0.0.1": Identity(actor_id="juror-1", token="secret-one")},
             **settings,
             **overrides,

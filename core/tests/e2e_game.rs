@@ -212,7 +212,7 @@ async fn both_winners_pay_minority_revealers_conserve_rounding_dust_and_withdraw
 #[tokio::test]
 async fn full_jury_threshold_does_not_shrink_for_absent_or_withholding_jurors() {
     let fixture = Fixture::new().await;
-    for jury_size in [3, 5, 7] {
+    for jury_size in [3, 5, 7, 15] {
         let id = format!("abort-jury-{jury_size}");
         fixture.open_dispute(&id, jury_size, "100").await;
         let threshold = jury_size / 2 + 1;
@@ -998,7 +998,7 @@ async fn a_temporary_transaction_budget_failure_retains_the_original_ballot_for_
 
 #[tokio::test]
 async fn a_participant_moves_only_its_own_credit_to_another_episode_participant() {
-    let fixture = Fixture::new().await;
+    let mut fixture = Fixture::new().await;
     fixture.register("paid", 3, "100").await;
     fixture
         .mutate(
@@ -1054,7 +1054,7 @@ async fn a_participant_moves_only_its_own_credit_to_another_episode_participant(
         .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
 
-    fixture
+    let payment = fixture
         .mutate(
             "/v1/episodes/paid/transfers",
             "creator",
@@ -1062,6 +1062,27 @@ async fn a_participant_moves_only_its_own_credit_to_another_episode_participant(
             json!({"recipient_id":"juror-1","amount_wei":"40"}),
         )
         .await;
+    // A recovered caller reuses the durable operation rather than paying twice.
+    fixture.restart_service().await;
+    let replayed = fixture
+        .mutate(
+            "/v1/episodes/paid/transfers",
+            "creator",
+            "pay-juror",
+            json!({"recipient_id":"juror-1","amount_wei":"40"}),
+        )
+        .await;
+    assert_eq!(replayed.operation_id, payment.operation_id);
+    let (status, _) = fixture
+        .request(
+            Method::POST,
+            "/v1/episodes/paid/transfers",
+            Some("creator"),
+            Some("pay-juror"),
+            json!({"recipient_id":"juror-1","amount_wei":"41"}),
+        )
+        .await;
+    assert_eq!(status, StatusCode::CONFLICT);
     assert_eq!(fixture.chain_credit("creator").await, U256::from(60));
     assert_eq!(fixture.chain_credit("juror-1").await, U256::from(40));
     let balances: BalancesView = fixture.get("/v1/episodes/paid/balances").await;

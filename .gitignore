@@ -15,6 +15,9 @@
 /harness/.venv/
 # Run results are archived in W&B (veracity-harness-wandb), not in git.
 /harness/results/
+# Research data restored from the private collusion-bench bucket.
+/harness/archive/october-2026/results/
+/report/data/
 /harness/build/
 /harness/dist/
 /harness/*.egg-info/

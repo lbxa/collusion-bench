@@ -1,9 +1,45 @@
 import json
 import sqlite3
+from types import SimpleNamespace
 
 import pytest
 
 from veracity_harness.tracking import check_secrets, run_metrics, uploadable
+
+
+def test_budget_stopped_campaign_tracking_finishes_without_claiming_completion(tmp_path):
+    from veracity_harness.tracking import LiveCampaignTracking, resolve_scope
+
+    finishes = []
+    scope = resolve_scope(tmp_path / "absent.env", environ={})
+    observer = LiveCampaignTracking(scope, "campaign-fixture", tmp_path)
+    observer.run = SimpleNamespace(summary={}, finish=lambda **kwargs: finishes.append(kwargs))
+    observer.close("budget_stopped")
+    assert observer.run.summary["campaign/status"] == "budget_stopped"
+    assert finishes == [{"exit_code": 0}]
+    assert (
+        json.loads((tmp_path / "campaign-tracking.json").read_text())["status"] == "budget_stopped"
+    )
+
+
+@pytest.mark.parametrize("project", [None, "historical-reproduction"])
+def test_upload_cli_uses_independent_project_and_honors_override(tmp_path, monkeypatch, project):
+    import sys
+
+    from veracity_harness import tracking
+
+    run = write_run(tmp_path)
+    uploads = []
+    monkeypatch.setattr(tracking, "verify_access", lambda scope: None)
+    monkeypatch.setattr(
+        tracking, "log_run", lambda directory, scope, **kwargs: uploads.append(scope.project)
+    )
+    args = ["veracity-harness-wandb", "--results", str(run), "--dotenv", str(tmp_path / ".env")]
+    if project is not None:
+        args.extend(["--project", project])
+    monkeypatch.setattr(sys, "argv", args)
+    tracking.main()
+    assert uploads == [project or "apart-collusion-sprint"]
 
 
 def write_run(root):
@@ -128,21 +164,26 @@ def test_run_metrics_counts_collusion_signals_awareness_probe_and_own_cost(tmp_p
 def test_uploads_skip_raw_traces_and_refuse_credentials(tmp_path):
     run = write_run(tmp_path)
     assert not any(path.name.endswith(".calls.jsonl") for path in uploadable(run))
-    check_secrets(run, ("fixture-account-id",))
+    check_secrets(run, ("fixture-account-id",), include_private_evidence=True)
     (run / "VR-1" / "leak.txt").write_text("url /accounts/fixture-account-id/ai")
     with pytest.raises(ValueError, match="Credential"):
-        check_secrets(run, ("fixture-account-id",))
+        check_secrets(run, ("fixture-account-id",), include_private_evidence=True)
 
 
 def test_explicit_raw_export_includes_calls_and_checks_them_for_secrets(tmp_path):
     run = write_run(tmp_path)
     calls = run / "VR-1/challenger.trace.calls.jsonl"
-    assert calls in uploadable(run, include_model_calls=True)
+    assert calls in uploadable(run, include_private_evidence=True, include_model_calls=True)
     (run / "private.sqlite").write_bytes(b"private database")
-    assert not any(p.suffix == ".sqlite" for p in uploadable(run, include_model_calls=True))
+    assert not any(
+        p.suffix == ".sqlite"
+        for p in uploadable(run, include_private_evidence=True, include_model_calls=True)
+    )
     calls.write_text(calls.read_text() + '\n{"leak": "fixture-host-secret"}')
     with pytest.raises(ValueError, match="Credential"):
-        check_secrets(run, ("fixture-host-secret",), include_model_calls=True)
+        check_secrets(
+            run, ("fixture-host-secret",), include_private_evidence=True, include_model_calls=True
+        )
 
 
 def test_only_finished_unlogged_runs_upload_and_excluded_runs_are_tagged(tmp_path):

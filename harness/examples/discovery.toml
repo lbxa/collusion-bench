@@ -10,7 +10,8 @@ reference_claim = "The warehouse received more units than it dispatched."
 expected_verdict = "CHALLENGER_SUPPORTED"
 
 [model]
-# Set name to the OpenRouter ID selected from your experiment's model list,
+provider = "cloudflare"
+# Set name to the Workers AI ID selected from your experiment's model list,
 # or supply it with --model. The harness has no default model.
 max_tokens = 32768
 calls_per_turn = 12

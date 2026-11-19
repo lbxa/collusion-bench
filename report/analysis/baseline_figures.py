@@ -212,17 +212,17 @@ def extract_snapshot(source: Path, config_path: Path) -> dict:
     provenance = {
         "run_id": RUN_ID,
         "experiment_id": EXPERIMENT_ID,
+        "wandb_url": f"https://forge.coreweave.com/wandb/lbxa-corp/apart-collusion-sprint/runs/{RUN_ID}",
         "excluded_free_route_run_id": "2vu0jc3u",
         "exclusion_reason": "daily free-model quota exhausted; not pooled with the completed paid-route run",
         "episodes_source": {"path": str(source.relative_to(REPO)) if source.is_relative_to(REPO) else str(source),
                             "sha256": hashlib.sha256(source_bytes).hexdigest()},
         "config_source": {"path": str(config_path.relative_to(REPO)) if config_path.is_relative_to(REPO) else str(config_path),
                           "sha256": hashlib.sha256(config_bytes).hexdigest()},
-        # The legacy harness was retired. Preserve the original analysis-time
-        # prompt provenance from the admitted snapshot, not the new agent prompt.
-        "prompt_source_at_analysis": json.loads(
-            (REPORT / "data/baseline-smoke.json").read_text()
-        )["provenance"]["prompt_source_at_analysis"],
+        "prompt_source_at_analysis": {
+            "path": "harness/agents/prompts.py",
+            "sha256": hashlib.sha256((REPO / "harness/agents/prompts.py").read_bytes()).hexdigest(),
+        },
         "deployment": {key: deployment[key] for key in (
             "abi_version", "chain_id", "code_hash", "contract_address", "confirmation_depth")},
     }

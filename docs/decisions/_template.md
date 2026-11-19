@@ -1,27 +1,18 @@
 # Short statement of the decision
 
 - **Date:** YYYY-MM-DD
-- **Status:** Accepted <!-- Accepted | Superseded by other-slug.md | Reversed -->
-- **Deciders:** who made the call (people, not agents)
-- **Area:** e.g. core/game, contracts, chat, forum, harness, benchmark, report
+- **Status:** Accepted
+- **Deciders:** People who made the decision
+- **Area:** Owning packages or research protocol
 
 ## Context
 
-What forced a choice? Name the constraint that is not visible in the code: a
-spec or constitution rule, an evidence threshold, a chain limitation, a budget,
-a model-provider quirk, or a parked experiment.
+Describe the constraint or trade-off that requires a durable explanation.
 
 ## Decision
 
-What we decided, stated plainly. One or two sentences is often enough.
+State the decision and its scope.
 
 ## Consequences
 
-What this means in practice, including behavior that looks like a bug but is
-intended and what we gave up. Link to the code (`path/to/file.rs`) and to the
-spec, benchmark, or guide section that covers the feature in full.
-
-## Alternatives considered
-
-Optional. What else we could have done and why we did not, so the same options
-are not re-litigated later.
+Explain operational effects, evidence limits and rejected alternatives.

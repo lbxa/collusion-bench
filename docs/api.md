@@ -223,10 +223,16 @@ export JUROR_TOKEN=dev-juror-1
 ```
 
 These `dev-*` credentials are only for explicit `--local` mode. Additional local
-credentials are `dev-juror-2` through `dev-juror-7` and `dev-treasury`. Each local
+credentials are `dev-juror-2` through `dev-juror-15` and `dev-treasury`. Each local
 process starts a fresh Anvil deployment and SQLite run directory. For persistent
 deployments and recovery across process restarts, use the documented `--config`
 mode and retain that deployment's database and chain.
+
+The local startup JSON includes the authoritative `participant_ids` roster
+alongside API/RPC listeners and deployment identity. The SDK uses those IDs with
+the documented local development credential convention; startup metadata never
+contains bearer tokens or wallet keys. Deployed mode does not emit this local
+orchestration record.
 
 Creating a game requires only its ID, participants, and protocol parameters.
 Experiment IDs, scenarios, agent models, prompts, treatments, and evaluation
@@ -406,14 +412,14 @@ The retired hackathon handoff conventions map to the current API as follows:
 
 | Handoff operation or convention | v1 mapping |
 | --- | --- |
-| `register_episode` | `POST /v1/episodes`; use integer strings and odd jury 3–7 |
+| `register_episode` | `POST /v1/episodes`; use integer strings and odd jury 3–15 |
 | `post_claim`, `challenge` | Submit artifact text to the corresponding endpoint |
 | `post_juror_bond`, then `cast_vote` | Replace with commitment including verdict/assessment, then later reveal |
 | `start_deliberation` | Harness schedules rounds over core forum messages; no game state override |
 | `start_voting` | Read/wait for chain-derived deadlines; no operator transition |
 | `settle`, `expire` | Request a terminal transaction, then read settlement |
 | `get_state`, `get_balances` | Read the episode and balance endpoints |
-| Jury sizes 11–101 | Rejected; changing the bound needs a protocol revision |
+| Jury sizes above 15 or even sizes | Rejected; changing the bound needs a protocol revision |
 | Floating-point currency | Convert to exact base-unit strings before calling |
 
 For a 10-unit party bond, 1-unit juror bonds, three valid revealers, and two

@@ -1,14 +1,77 @@
 """Local orchestration uses public chain snapshots, including after reconnecting."""
 
+import json
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
+import pytest
+from pydantic import ValidationError
+
+from game_api.core_types import Deployment, Startup
 from game_api.local_engine import LocalEngine
 
 
+def startup_metadata(participants):
+    return {
+        "api_url": "http://127.0.0.1:8080",
+        "rpc_url": "http://127.0.0.1:8545",
+        "participant_ids": participants,
+        "deployment": {
+            "abi_version": 2,
+            "chain_id": 31337,
+            "code_hash": "0xcode",
+            "confirmation_depth": 1,
+            "contract_address": "0xcontract",
+            "finality_policy": "local",
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "participants",
+    [[], ["juror-1", "juror-1"], ["operator"], [""], ["bad actor"], [1]],
+)
+def test_local_startup_rejects_ambiguous_or_operator_rosters(participants):
+    with pytest.raises(ValidationError):
+        Startup.model_validate(startup_metadata(participants))
+
+
 class LocalEngineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_start_uses_the_whole_authoritative_participant_roster(self):
+        actors = ["creator", "challenger", "treasury", *[f"juror-{n}" for n in range(1, 16)]]
+        metadata = startup_metadata(actors)
+        process = SimpleNamespace(
+            stdout=SimpleNamespace(readline=AsyncMock(return_value=json.dumps(metadata).encode())),
+            stderr=SimpleNamespace(read=AsyncMock(return_value=b"")),
+        )
+        client = SimpleNamespace(
+            start=AsyncMock(),
+            health=AsyncMock(
+                return_value=SimpleNamespace(
+                    deployment=Deployment.model_validate(metadata["deployment"])
+                )
+            ),
+        )
+        session = Mock()
+        local = LocalEngine(binary=Path(__file__))
+        with (
+            patch(
+                "game_api.local_engine.asyncio.create_subprocess_exec",
+                new=AsyncMock(return_value=process),
+            ),
+            patch("game_api.local_engine.CoreClient", return_value=client) as constructor,
+            patch("game_api.local_engine.aiohttp.ClientSession", return_value=session),
+            patch.object(local, "stop", new=AsyncMock()),
+        ):
+            assert await local.start() is client
+        assert constructor.call_args.kwargs["participant_tokens"] == {
+            actor: f"dev-{actor}" for actor in actors
+        }
+        assert "dev-operator" not in constructor.call_args.kwargs["participant_tokens"].values()
+        await local._stderr_task
+
     def test_default_engine_directory_is_the_repository_after_package_move(self):
         self.assertEqual(LocalEngine().engine_dir, Path(__file__).resolve().parents[2])
 

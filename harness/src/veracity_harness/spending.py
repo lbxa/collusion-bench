@@ -1,6 +1,7 @@
 """A durable, shared campaign cap, independent of provider credential selection."""
 
 import sqlite3
+from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 
@@ -32,8 +33,8 @@ class ModelPrice(BaseModel):
 
     @property
     def maximum_rates(self) -> dict[str, Decimal]:
-        # Use the entire context and the highest published tier, including cache
-        # writes. No provider web/search/image tools are enabled by this harness.
+        # Use the highest published tier, including cache writes. No provider
+        # web/search/image tools are enabled by this harness.
         tiers = [self.pricing, *self.pricing.overrides]
         input_rate = max(
             getattr(tier, key)
@@ -49,10 +50,16 @@ class ModelPrice(BaseModel):
             "request": request_rate,
         }
 
-    def request_ceiling(self, completion_tokens: int) -> Decimal:
+    def request_ceiling(
+        self, completion_tokens: int, *, input_tokens: int | None = None
+    ) -> Decimal:
+        if input_tokens is not None and (
+            type(input_tokens) is not int or not 1 <= input_tokens <= self.context_length
+        ):
+            raise ValueError("Input reservation must fit the model context")
         rates = self.maximum_rates
         ceiling = (
-            self.context_length * rates["prompt"]
+            (self.context_length if input_tokens is None else input_tokens) * rates["prompt"]
             + completion_tokens * rates["completion"]
             + rates["request"]
         )
@@ -92,6 +99,90 @@ def cloudflare_price(entry: dict) -> ModelPrice:
             "completion": rates["per M output tokens"],
         },
     )
+
+
+class CloudflareCatalogProvider(BaseModel):
+    provider: str
+    pricing: dict[str, Decimal]
+
+
+class CloudflareCatalogModel(BaseModel):
+    model_id: str
+    context_length: int = Field(gt=0)
+    model_providers: list[CloudflareCatalogProvider] = Field(min_length=1)
+
+
+def cloudflare_catalog_price(entry: dict) -> ModelPrice:
+    """Bound unified-catalog text rates, including the 5% credit-purchase fee."""
+    model = CloudflareCatalogModel.model_validate(entry)
+    inputs, outputs = [], []
+    input_keys = {
+        prefix + key
+        for prefix in ("", "short_context_", "long_context_")
+        for key in (
+            "input_tokens",
+            "input_cached_tokens",
+            "input_cache_creation_tokens",
+            "input_cache_creation_1h_tokens",
+        )
+    }
+    output_keys = {prefix + "output_tokens" for prefix in ("", "short_context_", "long_context_")}
+    for provider in model.model_providers:
+        for key, value in provider.pricing.items():
+            if key == "long_context_threshold_tokens":
+                continue
+            if not value.is_finite() or value < 0:
+                raise ValueError("Invalid Cloudflare catalog rate")
+            if key in input_keys:
+                inputs.append(value)
+            elif key in output_keys:
+                outputs.append(value)
+            else:
+                raise ValueError("Unknown Cloudflare pricing dimension")
+    if not inputs or not outputs:
+        raise ValueError("Cloudflare catalog requires input and output token prices")
+    allowance = Decimal("1.05") / 1_000_000
+    return ModelPrice(
+        id=model.model_id,
+        context_length=model.context_length,
+        pricing={"prompt": max(inputs) * allowance, "completion": max(outputs) * allowance},
+    )
+
+
+async def fetch_cloudflare_catalog_price(model_id: str, account_id: str, token: str) -> ModelPrice:
+    url = f"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/catalog/models"
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=30), trust_env=True
+    ) as session:
+        async with session.get(
+            url,
+            params={"search": model_id, "per_page": "100"},
+            headers={"Authorization": f"Bearer {token}"},
+        ) as response:
+            response.raise_for_status()
+            catalog = await response.json()
+    if not catalog.get("success"):
+        raise ValueError("Cloudflare unified catalog request failed")
+    for entry in catalog["result"]:
+        if entry.get("model_id") == model_id:
+            return cloudflare_catalog_price(entry)
+    raise ValueError("Selected model is absent from the Cloudflare unified catalog")
+
+
+def cloudflare_usage_cost_bound(usage: dict | None, price: ModelPrice) -> Decimal | None:
+    """Conservative token bound, not an invoice or a provider monetary receipt."""
+    if usage is None:
+        return None
+    counts = [usage.get("input_tokens"), usage.get("output_tokens")]
+    details = usage.get("input_token_details") or {}
+    if not isinstance(details, dict):
+        raise ValueError("Cloudflare usage requires nonnegative integer counts")
+    counts.extend(details.values())
+    if any(type(count) is not int or count < 0 for count in counts):
+        raise ValueError("Cloudflare usage requires nonnegative integer counts")
+    # Cache counts may be inclusive or separate. Adding them is conservative in
+    # both cases, and every input token uses the maximum published cache/tier rate.
+    return price.request_ceiling(counts[1], input_tokens=max(1, counts[0] + sum(counts[2:])))
 
 
 CLOUDFLARE_NEURON_USD = Decimal("0.000011")  # Workers AI: USD 0.011 per 1,000 neurons.
@@ -141,7 +232,7 @@ async def fetch_cloudflare_price(model_id: str, account_id: str, token: str) -> 
 
 
 class CampaignSpending:
-    """Reserve before dispatch; replace a hold only with a known final charge.
+    """Reserve before dispatch; distinguish receipts from conservative usage bounds.
 
     BEGIN IMMEDIATE serializes separate agents/processes against one ledger.
     Crashes, timeouts and missing usage retain their full hold. A ledger's cap
@@ -172,11 +263,51 @@ class CampaignSpending:
                 raise ValueError("Use the original campaign cap for this ledger")
         path.chmod(0o600)
 
-    def reserve(self, request_id: str, price: ModelPrice, max_tokens: int):
-        amount = price.request_ceiling(max_tokens)
+    def increase_limit(self, new_limit: Decimal, *, authorization: str) -> "CampaignSpending":
+        """Apply an explicit operator amendment without clearing charges or holds."""
+        if not new_limit.is_finite() or new_limit <= self.limit or not authorization.strip():
+            raise ValueError(
+                "A cap increase needs a finite higher limit and explicit authorization"
+            )
         with sqlite3.connect(self.path, timeout=30) as database:
             database.execute("BEGIN IMMEDIATE")
-            if database.execute("SELECT halted FROM campaign").fetchone()[0]:
+            current, halted = database.execute("SELECT limit_usd, halted FROM campaign").fetchone()
+            if Decimal(current) != self.limit:
+                raise ValueError("Campaign cap changed; reload the ledger")
+            if halted:
+                raise SpendingLimitReached("A cap increase cannot clear a pricing audit")
+            database.execute(
+                "CREATE TABLE IF NOT EXISTS cap_amendments ("
+                "created_at TEXT NOT NULL, previous_limit_usd TEXT NOT NULL, "
+                "new_limit_usd TEXT NOT NULL, authorization TEXT NOT NULL)"
+            )
+            database.execute(
+                "INSERT INTO cap_amendments VALUES (?, ?, ?, ?)",
+                (
+                    datetime.now(UTC).isoformat(),
+                    current,
+                    str(new_limit),
+                    authorization,
+                ),
+            )
+            database.execute("UPDATE campaign SET limit_usd = ?", (str(new_limit),))
+        return CampaignSpending(self.path, new_limit)
+
+    def reserve(
+        self,
+        request_id: str,
+        price: ModelPrice,
+        max_tokens: int,
+        *,
+        input_tokens: int | None = None,
+    ):
+        amount = price.request_ceiling(max_tokens, input_tokens=input_tokens)
+        with sqlite3.connect(self.path, timeout=30) as database:
+            database.execute("BEGIN IMMEDIATE")
+            current, halted = database.execute("SELECT limit_usd,halted FROM campaign").fetchone()
+            if Decimal(current) != self.limit:
+                raise ValueError("Campaign cap changed; reload the ledger")
+            if halted:
                 raise SpendingLimitReached("Campaign requires a pricing audit")
             spent = sum(
                 (Decimal(row[0]) for row in database.execute("SELECT accounted_usd FROM requests")),
@@ -189,9 +320,10 @@ class CampaignSpending:
                 (request_id, price.id, str(amount), str(amount)),
             )
 
-    def reconcile(self, request_id: str, cost: Decimal | None):
+    def reconcile(self, request_id: str, cost: Decimal | None, *, usage_bound: bool = False):
+        """Replace one reservation with a monetary receipt or an explicit usage bound."""
         if cost is None:
-            return  # Unknown is charged conservatively, never converted into zero.
+            return  # Unknown retains its full reservation, never converted into zero.
         if not cost.is_finite() or cost < 0:
             raise ValueError("Invalid provider charge")
         with sqlite3.connect(self.path, timeout=30) as database:
@@ -202,14 +334,24 @@ class CampaignSpending:
             if row is None or row[1] != "reserved":
                 raise ValueError("Provider charge must reconcile one outstanding request")
             database.execute(
-                "UPDATE requests SET accounted_usd = ?, status = 'charged' WHERE id = ?",
-                (str(cost), request_id),
+                "UPDATE requests SET accounted_usd = ?, status = ? WHERE id = ?",
+                (str(cost), "usage_bounded" if usage_bound else "charged", request_id),
             )
             if cost > Decimal(row[0]):
                 database.execute("UPDATE campaign SET halted = 1")
         if cost > Decimal(row[0]):
             # Catalog drift invalidates the bound; stop rather than trust it again.
             raise SpendingLimitReached("Provider charge exceeded the catalog reservation")
+
+    def confirmed_charges(self, request_ids: set[str]) -> Decimal:
+        """Attribute confirmed charges to a run even when other runs share this ledger."""
+        with sqlite3.connect(self.path) as database:
+            rows = database.execute(
+                "SELECT id, accounted_usd FROM requests WHERE status = 'charged'"
+            ).fetchall()
+        return sum(
+            (Decimal(cost) for identity, cost in rows if identity in request_ids), Decimal(0)
+        )
 
     def snapshot(self) -> dict:
         with sqlite3.connect(self.path) as database:
@@ -220,6 +362,10 @@ class CampaignSpending:
             "charged_usd": str(
                 sum((Decimal(row[0]) for row in rows if row[1] == "charged"), Decimal(0))
             ),
+            "usage_bounded_usd": str(
+                sum((Decimal(row[0]) for row in rows if row[1] == "usage_bounded"), Decimal(0))
+            ),
+            "usage_bounded_requests": sum(row[1] == "usage_bounded" for row in rows),
             "requests": len(rows),
             "unresolved_requests": sum(row[1] == "reserved" for row in rows),
         }

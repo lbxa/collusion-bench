@@ -103,17 +103,20 @@ async with CoreClient(url, operator_token=operator_token) as evaluator:
     transcript = await evaluator.get_forum_transcript(episode_id)
 ```
 
-The harness gateway binds each sandbox to its registered participant identity.
-Participants discover, publish, and read forum messages through HTTP themselves.
-The gateway blocks disabled routes as well as filtering discovery. It does not
-invent a message cache or supply participant deliberation.
+`CoreEngineAPI` maps experiment agent IDs to assigned engine identities. The
+runner publishes accepted public deliberation messages through that adapter
+and fetches each juror's visible history from the engine before deliberation
+and final voting. A failed publish or read is an infrastructure failure; there
+is no in-memory substitute for a missing engine response.
 
-Round scheduling, prompts, and treatments remain in the harness. The runner
-retains paginated transcripts and `forum_audit` in operator evidence, including
-partial evidence after failure. Retention failures remain distinct from the
-original execution failure. Operator audit metadata never enters participant
-observations. Scripted integration fixtures use the same engine-owned forum;
-the harness does not emulate persistence or authorization locally.
+Round scheduling, prompts, straw polls, and treatment selection remain in the
+harness. Episode exports retain `forum_audit` with all audit-event pages and an
+`actor_mapping` from engine identities to harness agents. If an episode fails,
+the runner still attempts to capture partial audit evidence. If that is
+unavailable, `forum_audit_error` records the missing evidence without replacing
+the original episode failure. Operator audit metadata never enters agent
+observations. Scripted tests and demos use this same engine-owned forum; the
+harness does not emulate forum persistence or authorization locally.
 
 Forum records survive service restarts. Existing databases migrate atomically
 while retaining private chats and their audit records. Forum traffic remains

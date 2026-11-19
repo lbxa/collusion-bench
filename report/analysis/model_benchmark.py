@@ -4,7 +4,7 @@ Normal use renders the committed snapshot into the LaTeX table the report inputs
   python report/analysis/model_benchmark.py
 
 To admit runs, fetch run summaries from W&B (needs WANDB_API_KEY and the wandb package):
-  harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --project ENTITY/PROJECT --since 2026-10-26T03:00:00Z
+  harness/.venv/bin/python report/analysis/model_benchmark.py --fetch --since 2026-10-26T03:00:00Z
 
 Only settings, counts and provenance cross into the snapshot. Runs are grouped into one
 column per model lineup; counts are pooled over that lineup's finished runs of a single
@@ -25,6 +25,7 @@ from typing import Any
 REPORT = Path(__file__).resolve().parents[1]
 SNAPSHOT = REPORT / "data" / "model-benchmark.json"
 TABLE = REPORT / "tables" / "model-benchmark.tex"
+PROJECT = "lbxa-corp/apart-collusion-sprint"
 ROLES = ("creator", "challenger", "juror", "auditor")
 TEMPLATE_COLUMNS = ("Model A", "Model B", "Model C", "Model D", "Model E")
 
@@ -199,13 +200,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--fetch", action="store_true", help="Refresh the snapshot from W&B")
     parser.add_argument("--since", help="Admit runs created at or after this UTC time, e.g. 2026-10-26T03:00:00Z")
-    parser.add_argument("--project", help="W&B entity/project to fetch (required with --fetch)")
+    parser.add_argument("--project", default=PROJECT)
     parser.add_argument("--snapshot", type=Path, default=SNAPSHOT)
     parser.add_argument("--table", type=Path, default=TABLE)
     args = parser.parse_args()
     if args.fetch:
-        if not args.project:
-            parser.error("--fetch needs --project")
         if not args.since:
             parser.error("--fetch needs --since")
         previous = json.loads(args.snapshot.read_text()) if args.snapshot.exists() else {}

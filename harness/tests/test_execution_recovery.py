@@ -289,7 +289,8 @@ async def test_bad_rate_store_fails_before_catalog_or_reservation(monkeypatch, t
     assert not (tmp_path / "runs").exists()
 
 
-async def test_catalog_rejection_is_retained_before_engine_startup(monkeypatch, tmp_path):
+@pytest.mark.parametrize("provider", ["openrouter", "cloudflare"])
+async def test_catalog_rejection_is_retained_before_engine_startup(monkeypatch, tmp_path, provider):
     async def rejected_catalog(*args):
         raise openai.APIStatusError(
             "Private authentication detail",
@@ -298,8 +299,11 @@ async def test_catalog_rejection_is_retained_before_engine_startup(monkeypatch, 
         )
 
     monkeypatch.setattr("veracity_harness.runner.fetch_model_price", rejected_catalog)
+    monkeypatch.setattr("veracity_harness.runner.fetch_cloudflare_price", rejected_catalog)
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "fixture-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "fixture-not-a-credential")
     experiment = load_experiment(
-        ROOT / "harness/examples/discovery.toml", model_name="fixture/model"
+        ROOT / "harness/examples/discovery.toml", model_name="fixture/model", provider=provider
     )
     spending = CampaignSpending(tmp_path / "budget.sqlite", Decimal(1))
     with pytest.raises(openai.APIStatusError):
@@ -339,10 +343,13 @@ def test_cancelled_request_retains_its_hold_and_explicit_audit(tmp_path):
 async def test_hard_watchdog_cancels_hung_request_and_retains_its_hold(monkeypatch, tmp_path):
     original_timeout = asyncio.timeout
     durations = []
+    watchdog = None
 
     def accelerated_timeout(duration):
+        nonlocal watchdog
         durations.append(duration)
-        return original_timeout(0.02)
+        watchdog = original_timeout(None)
+        return watchdog
 
     monkeypatch.setattr(
         "veracity_harness.agents.asyncio",
@@ -351,6 +358,10 @@ async def test_hard_watchdog_cancels_hung_request_and_retains_its_hold(monkeypat
 
     class HungModel(FlakyModel):
         async def _agenerate(self, *args, **kwargs):
+            # Expire only after the request has reserved its hold. A fixed 20 ms
+            # deadline could fire during graph setup on a loaded machine.
+            assert watchdog is not None
+            watchdog.reschedule(asyncio.get_running_loop().time())
             await asyncio.Event().wait()
 
     spending = CampaignSpending(tmp_path / "budget.sqlite", Decimal(1))
@@ -360,7 +371,7 @@ async def test_hard_watchdog_cancels_hung_request_and_retains_its_hold(monkeypat
         pricing={"prompt": "0.000001", "completion": "0.000002"},
     )
     participant = agent(tmp_path, HungModel(), spending=spending, price=price)
-    result = await participant.act("case", 1, tmp_path / "trace.jsonl")
+    result = await asyncio.wait_for(participant.act("case", 1, tmp_path / "trace.jsonl"), 5)
     assert result.status == "timeout" and result.recoverable
     assert result.error_type == "TimeoutError" and result.failure_kind == "turn_timeout"
     assert durations == [1290]  # Two 600 s intervals, one rate window, 30 s tool grace.

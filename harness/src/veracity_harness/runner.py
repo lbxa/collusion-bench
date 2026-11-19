@@ -224,7 +224,7 @@ async def play_episode(
         if experiment.scripted_setup_first:
             scripted = experiment.scripted_actors
             first = [a for a in order if a in scripted and (phase, a) not in scripted_notified]
-            parties = [a for a in first if a != experiment.scripted_peer]
+            parties = [a for a in first if a not in experiment.peer_jurors]
             await run_batch(parties)
             scripted_notified.update((phase, actor) for actor in parties)
             # Claim/challenge APIs acknowledge asynchronous operations. Do not
@@ -237,35 +237,47 @@ async def play_episode(
                         state = await client.get_episode(episode_id)
             if state.phase == phase:
                 offer_visible = None
+                offer_stored = None
+                public_messages_returned = 0
+                public_messages_withheld = 0
                 if phase == "COMMIT" and experiment.offer_by is not None:
                     forum = await client.get_forum_transcript(episode_id)
-                    offer_visible = any(
+                    offer_stored = any(
                         m.sender_id == experiment.offer_by and m.content == experiment.offer
                         for m in forum.messages
                     )
-                    if not offer_visible:
+                    if not offer_stored:
                         raise RuntimeError(
                             "Scripted offer was not visible before juror notification"
                         )
-                peers = [a for a in first if a == experiment.scripted_peer]
+                    offer_visible = experiment.treatment.message_delivery == "normal"
+                peers = [a for a in first if a in experiment.peer_jurors]
                 await run_batch(peers)
                 scripted_notified.update((phase, actor) for actor in peers)
                 # Seeded action is confirmed before evaluated models can react.
-                if experiment.scripted_peer and phase in {"COMMIT", "REVEAL"}:
+                if experiment.peer_jurors and phase in {"COMMIT", "REVEAL"}:
                     async with asyncio.timeout(30):
                         while True:
                             state = await client.get_episode(episode_id)
-                            peer = next(
-                                j for j in state.jurors if j.actor_id == experiment.scripted_peer
-                            )
-                            if peer.commitment is not None if phase == "COMMIT" else peer.revealed:
+                            seeded = [
+                                j for j in state.jurors if j.actor_id in experiment.peer_jurors
+                            ]
+                            if all(
+                                j.commitment is not None if phase == "COMMIT" else j.revealed
+                                for j in seeded
+                            ):
                                 break
                             await asyncio.sleep(0.05)
                 if phase == "COMMIT" and not public_exposure_delivered:
                     # Deliver public discussion as data, without operator role ids.
                     forum = await client.get_forum_transcript(episode_id)
+                    delivered = (
+                        forum.messages if experiment.treatment.message_delivery == "normal" else []
+                    )
+                    public_messages_returned = len(delivered)
+                    public_messages_withheld = len(forum.messages) - len(delivered)
                     public_snapshot = json.dumps(
-                        [{"content": message.content} for message in forum.messages],
+                        [{"content": message.content} for message in delivered],
                         ensure_ascii=False,
                     )
                     public_exposure_delivered = True
@@ -276,7 +288,12 @@ async def play_episode(
                                 "time_unix": time.time(),
                                 "phase": phase,
                                 "offer_visible": offer_visible,
+                                "offer_stored": offer_stored,
+                                "message_delivery": experiment.treatment.message_delivery,
+                                "public_messages_returned": public_messages_returned,
+                                "public_messages_withheld": public_messages_withheld,
                                 "scripted_peer": experiment.scripted_peer,
+                                "scripted_peers": list(experiment.peer_jurors),
                                 "before_evaluated_juror_notification": True,
                             }
                         )
@@ -884,6 +901,7 @@ async def run_experiment(
                                 if smoke
                                 else experiment.actor_ids
                             )
+                            mounts = {}
                             for actor in active_actors:
                                 stage = "participant_setup"
                                 docs = episode_dir / "documents" / actor
@@ -906,9 +924,10 @@ async def run_experiment(
                                 mounted = arena.staging / actor
                                 shutil.copytree(docs, mounted)
                                 mounted.chmod(0o755)
-                                sandbox, address = await asyncio.to_thread(
-                                    arena.start_participant, actor, mounted, gateway, shared
-                                )
+                                mounts[actor] = mounted
+                            stage = "participant_setup"
+                            sandboxes = await arena.start_participants(mounts, gateway, shared)
+                            for actor, (sandbox, address) in sandboxes.items():
                                 identities[address] = Identity(actor_id=actor, token=f"dev-{actor}")
                                 memory_root = (
                                     directory / "memory"
@@ -925,12 +944,13 @@ async def run_experiment(
                                 policy_model = (
                                     JurorOfferModel(
                                         verdict=experiment.peer_verdict,
-                                        offer=experiment.peer_offer,
+                                        offer=experiment.peer_message(actor),
                                     )
-                                    if actor == experiment.scripted_peer and experiment.peer_offer
+                                    if experiment.peer_message(actor)
                                     else PeerModel(
                                         verdict=case.expected_verdict,
                                         allowance=experiment.lookup_allowance,
+                                        inspection_count=experiment.scripted_peer_inspection_count,
                                     )
                                     if actor == experiment.scripted_peer
                                     else ChallengerModel(
@@ -976,6 +996,7 @@ async def run_experiment(
                                 if continuous
                                 else OPERATOR_TAGS,
                                 aliases=aliases,
+                                participant_ids=tuple(experiment.actor_ids),
                                 records={
                                     row["id"]: row
                                     for row in (

@@ -1,9 +1,159 @@
+import asyncio
+from threading import Barrier, Event
 from unittest.mock import MagicMock
 
 import pytest
-from docker.errors import APIError
+from docker.errors import APIError, NotFound
 
 from veracity_harness.sandbox import DockerArena
+
+
+async def test_participants_start_concurrently_and_keep_roster_order(monkeypatch, tmp_path):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("parallel-start-fixture")
+    documents = {f"juror-{i}": tmp_path / str(i) for i in range(1, 5)}
+    barrier = Barrier(4, timeout=3)
+    gateway = object()
+
+    def start(actor, docs, passed_gateway, shared):
+        assert docs == documents[actor]
+        assert passed_gateway is gateway
+        assert shared == "cache"
+        barrier.wait()
+        return actor, f"address-{actor}"
+
+    monkeypatch.setattr(arena, "start_participant", start)
+    try:
+        started = await arena.start_participants(documents, gateway, "cache")
+        assert list(started) == list(documents)
+        assert started == {actor: (actor, f"address-{actor}") for actor in documents}
+    finally:
+        arena.close()
+
+
+async def test_failed_startup_drains_workers_before_cleanup(monkeypatch, tmp_path):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("parallel-failure-fixture")
+    barrier = Barrier(2, timeout=3)
+    failure = Event()
+    finished = Event()
+    container = MagicMock()
+
+    def start(actor, docs, gateway, shared):
+        barrier.wait()
+        if actor == "fails":
+            failure.set()
+            raise APIError("Fixture startup failure")
+        assert failure.wait(timeout=3)
+        arena.containers.append(container)
+        finished.set()
+        return container, "address"
+
+    monkeypatch.setattr(arena, "start_participant", start)
+    try:
+        with pytest.raises(APIError):
+            await arena.start_participants({"fails": tmp_path, "finishes": tmp_path}, object())
+        assert finished.is_set()
+    finally:
+        arena.close()
+    container.remove.assert_called_once_with(force=True)
+
+
+async def test_cancelled_startup_drains_workers_before_cleanup(monkeypatch, tmp_path):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("cancelled-start-fixture")
+    entered, release, finished = Event(), Event(), Event()
+    container = MagicMock()
+
+    def start(actor, docs, gateway, shared):
+        entered.set()
+        assert release.wait(timeout=3)
+        arena.containers.append(container)
+        finished.set()
+        return container, "address"
+
+    monkeypatch.setattr(arena, "start_participant", start)
+    startup = asyncio.create_task(arena.start_participants({"juror-1": tmp_path}, object()))
+    try:
+        assert await asyncio.to_thread(entered.wait, 3)
+        startup.cancel()
+        await asyncio.sleep(0)
+        assert not startup.done()
+    finally:
+        release.set()
+        with pytest.raises(asyncio.CancelledError):
+            await startup
+        arena.close()
+    assert finished.is_set()
+    container.remove.assert_called_once_with(force=True)
+
+
+def test_cleanup_removes_all_containers_before_networks_and_mounts(monkeypatch):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("parallel-close-fixture")
+    barrier = Barrier(4, timeout=3)
+    removed = []
+
+    def remove_container(number):
+        assert arena.staging.exists()
+        barrier.wait()
+        removed.append(number)
+
+    for number in range(4):
+        container = MagicMock()
+        container.remove.side_effect = lambda number=number, **kwargs: remove_container(number)
+        arena.containers.append(container)
+    network = MagicMock()
+
+    def remove_network():
+        assert len(removed) == 4
+        assert arena.staging.exists()
+
+    network.remove.side_effect = remove_network
+    arena.networks.append(network)
+    volume = MagicMock()
+
+    def remove_volume(**kwargs):
+        network.remove.assert_called_once_with()
+        assert arena.staging.exists()
+
+    volume.remove.side_effect = remove_volume
+    arena.volumes.append(volume)
+    arena.close()
+    network.remove.assert_called_once_with()
+    volume.remove.assert_called_once_with(force=True)
+    assert not arena.staging.exists()
+
+
+@pytest.mark.parametrize("error", [APIError, NotFound])
+def test_cleanup_attempts_remaining_resources_after_removal_failure(monkeypatch, error):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("cleanup-failure-fixture")
+    failed, other, network, volume = (MagicMock() for _ in range(4))
+    failed.remove.side_effect = error("Fixture removal failure")
+    arena.containers.extend([failed, other])
+    arena.networks.append(network)
+    arena.volumes.append(volume)
+    if error is APIError:
+        with pytest.raises(RuntimeError, match="1 resources"):
+            arena.close()
+    else:
+        arena.close()
+    other.remove.assert_called_once_with(force=True)
+    network.remove.assert_called_once_with()
+    volume.remove.assert_called_once_with(force=True)
+    client.close.assert_called_once_with()
+    assert not arena.staging.exists()
 
 
 def test_container_is_owned_before_start_can_fail(monkeypatch, tmp_path):

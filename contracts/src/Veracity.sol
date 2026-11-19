@@ -135,7 +135,7 @@ contract Veracity {
         if (
             config.creator == address(0) || config.challenger == address(0) || config.treasury == address(0)
                 || config.creator == config.challenger || config.creator == config.treasury
-                || config.challenger == config.treasury || config.jurors.length < 3 || config.jurors.length > 7
+                || config.challenger == config.treasury || config.jurors.length < 3 || config.jurors.length > 15
                 || config.jurors.length % 2 == 0
         ) revert InvalidConfiguration();
         if (
@@ -155,14 +155,14 @@ contract Veracity {
         // forge-lint: disable-end
         for (uint256 i; i < config.jurors.length; i++) {
             address juror = config.jurors[i];
-            // The roster is capped at seven; invalid eligibility must reject registration atomically.
+            // The roster is capped at fifteen; invalid eligibility must reject registration atomically.
             // forge-lint: disable-start(require-revert-in-loop)
             if (
                 juror == address(0) || juror == config.creator || juror == config.challenger || juror == config.treasury
             ) revert InvalidConfiguration();
             // forge-lint: disable-end
             for (uint256 j; j < i; j++) {
-                // At most 21 roster pairs are checked; a duplicate cannot be deferred past registration.
+                // At most 105 roster pairs are checked; a duplicate cannot be deferred past registration.
                 // forge-lint: disable-next-line(require-revert-in-loop)
                 if (juror == config.jurors[j]) revert InvalidConfiguration();
             }

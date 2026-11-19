@@ -96,6 +96,7 @@ def main():
         experiment = experiment.model_copy(
             update={
                 "episodes": 1,
+                "schedule": experiment.schedule[:1],
                 "model": experiment.model.model_copy(
                     update={
                         "calls_per_turn": min(4, experiment.model.calls_per_turn),

@@ -1,10 +1,5 @@
 # Research reporting guide
 
-Current target: **AI x Epistemics Research Sprint, November 13–15, 2026**.
-Use the checked [venue requirements](venue.md) and
-[prior-work disclosure](../epistemics-2026-disclosure.md). The retained October
-reports are historical inputs, with new sprint work recorded separately.
-
 Use these standards when planning, writing, illustrating, or reviewing the
 project's LaTeX research report. They encode recurring decisions and observable
 checks; routine LaTeX syntax remains reference material.

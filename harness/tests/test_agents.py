@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
@@ -20,6 +21,126 @@ from veracity_harness.config import ModelSettings
 from veracity_harness.spending import CampaignSpending, ModelPrice
 
 
+def test_cloudflare_sampling_seed_reaches_request_payload(monkeypatch):
+    from veracity_harness.agents import create_cloudflare_model
+
+    monkeypatch.setenv("CLOUDFLARE_ACCOUNT_ID", "fixture-account")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "fixture-token")
+    model = create_cloudflare_model(
+        ModelSettings(name="@cf/fixture", provider="cloudflare", sampling_seed=29), None
+    )
+    assert model._get_request_payload([HumanMessage("test")])["seed"] == 29
+
+
+def test_openrouter_sampling_seed_reaches_provider_parameters(monkeypatch):
+    from veracity_harness.agents import create_openrouter_model
+
+    monkeypatch.setenv("OPENROUTER_API_KEY", "fixture-key")
+    model = create_openrouter_model(ModelSettings(name="fixture/model", sampling_seed=29), None)
+    assert model._default_params["seed"] == 29
+
+
+async def test_cloudflare_json_mode_preserves_length_limited_response_and_charge(tmp_path):
+    import httpx
+
+    seen = []
+    cost = Decimal("0.008212")
+
+    def respond(request):
+        seen.append(json.loads(request.content))
+        return httpx.Response(
+            200,
+            json={
+                "id": "fixture-completion",
+                "object": "chat.completion",
+                "created": 1,
+                "model": "@cf/fixture",
+                "choices": [
+                    {
+                        "index": 0,
+                        "finish_reason": "length",
+                        "message": {"role": "assistant", "content": '{"verdict":'},
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 20,
+                    "completion_tokens": 4096,
+                    "total_tokens": 4116,
+                    "neurons": float(cost / Decimal("0.000011")),
+                },
+            },
+        )
+
+    transport = httpx.MockTransport(respond)
+    model = ChatCloudflare(
+        model="@cf/fixture",
+        base_url="https://cloudflare.fixture/v1",
+        api_key="fixture-key",
+        max_tokens=4096,
+        max_retries=0,
+        capacity_retries=0,
+        http_async_client=httpx.AsyncClient(transport=transport),
+        http_client=httpx.Client(transport=transport),
+        rate_limit_path=tmp_path / "rate.sqlite",
+    )
+    settings = ModelSettings(
+        name="@cf/fixture", provider="cloudflare", text_input_token_ceiling=16384
+    )
+    price = ModelPrice(
+        id=settings.name,
+        context_length=20000,
+        pricing={"prompt": "0.000001", "completion": "0.000002"},
+    )
+    ledger = CampaignSpending(tmp_path / "spending.sqlite", Decimal(1))
+    budget = ModelBudget(settings, ledger, price)
+    budget.begin_turn()
+    try:
+        message = await model.ainvoke(
+            [HumanMessage("Return a JSON verdict")],
+            extra_body={"response_format": {"type": "json_object"}},
+            config={"callbacks": [budget]},
+        )
+    finally:
+        await model.root_async_client.close()
+        model.root_client.close()
+    assert seen[0]["response_format"] == {"type": "json_object"}
+    assert message.response_metadata["finish_reason"] == "length"
+    assert message.usage_metadata["output_tokens"] == 4096
+    assert ledger.snapshot()["unresolved_requests"] == 0
+    assert abs(Decimal(ledger.snapshot()["charged_usd"]) - cost) < Decimal("0.000000001")
+
+
+def test_bounded_text_budget_reserves_checked_input_not_full_context(tmp_path):
+    price = ModelPrice(
+        id="fixture/model",
+        context_length=1000000,
+        pricing={"prompt": "0.000008", "completion": "0.00002"},
+    )
+    ledger = CampaignSpending(tmp_path / "spending.sqlite", Decimal(10))
+    settings = ModelSettings(name=price.id, text_input_token_ceiling=131072, max_tokens=2048)
+    budget = ModelBudget(settings, ledger, price)
+    budget.begin_turn()
+    budget.on_chat_model_start({}, [[HumanMessage("a short source document")]], run_id="bounded")
+    assert Decimal(ledger.snapshot()["accounted_usd"]) == price.request_ceiling(
+        2048, input_tokens=131072
+    )
+    assert Decimal(ledger.snapshot()["accounted_usd"]) < price.request_ceiling(2048)
+    with pytest.raises(ValueError, match="input-token reservation"):
+        budget.on_chat_model_start({}, [[HumanMessage("x" * 131072)]], run_id="oversize")
+    with pytest.raises(ValueError, match="tools and plugins"):
+        budget.on_chat_model_start(
+            {},
+            [[HumanMessage("short")]],
+            run_id="tools",
+            invocation_params={"tools": [{"type": "function"}]},
+        )
+    with pytest.raises(ValueError, match="plain conversation"):
+        budget.on_chat_model_start(
+            {}, [[HumanMessage([{"type": "text", "text": "block"}])]], run_id="multimodal"
+        )
+    assert ledger.snapshot()["requests"] == 1
+
+
 def test_aggregate_budget_includes_delegated_calls_and_rejects_before_provider_request():
     budget = ModelBudget(ModelSettings(name="fixture/model", calls_per_turn=2, calls_per_episode=3))
     budget.begin_turn()
@@ -36,7 +157,7 @@ def test_aggregate_budget_includes_delegated_calls_and_rejects_before_provider_r
 
 
 @pytest.mark.parametrize("config", ["hidden", "evaluation", "principal", "principles"])
-def test_starting_instruction_supplies_objective_without_strategy_or_api_actions(config):
+def test_starting_instruction_supplies_objective_and_reads_without_strategy_or_mutations(config):
     from veracity_harness.config import load_experiment
     from veracity_harness.materials import system_prompt
     from veracity_harness.runner import ROOT
@@ -45,8 +166,10 @@ def test_starting_instruction_supplies_objective_without_strategy_or_api_actions
     prompt = system_prompt(experiment).lower()
     assert "final net payoff" in prompt
     assert "while following the constitution" in prompt
-    for cue in ("collu", "brib", "recipro", "commit", "reveal", "vote", "/v1/"):
+    for cue in ("collu", "brib", "recipro", "commit", "reveal", "vote", " -x ", " --data"):
         assert cue not in prompt
+    assert 'curl -fss "$veracity_url/v1/identity"' in prompt
+    assert 'curl -fss "$veracity_url/v1/openapi.json"' in prompt
 
 
 class UnusedSandbox(BaseSandbox):

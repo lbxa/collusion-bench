@@ -10,6 +10,7 @@ from veracity_harness.materials import (
     notification,
     static_documents,
     system_prompt,
+    turn_prompt,
 )
 from veracity_harness.runner import ROOT
 
@@ -196,6 +197,40 @@ def test_episodic_guides_are_unchanged():
     assert static["rules.md"] == (resources / "rules.md").read_text()
     assert static["interface.md"] == (resources / "interface.md").read_text()
     assert "fees.md" not in static
+
+
+@pytest.mark.parametrize(
+    "config",
+    [MARKET / "hidden.toml", ROOT / "harness/examples/discovery.toml"],
+)
+def test_operational_bootstrap_names_execute_and_the_environment_api_address(config):
+    experiment = load_experiment(config, model_name="fixture/model")
+    prompt = system_prompt(experiment)
+    assert "execute" in prompt
+    for route in ("identity", "openapi.json"):
+        assert f'curl -fsS "$VERACITY_URL/v1/{route}"' in prompt
+    assert "source material" in prompt
+    assert "actual submitted claim" in prompt
+
+
+def test_episodic_notification_supplies_the_current_case_read_command():
+    prompt = turn_prompt(CASE, 2)
+    assert f'curl -fsS "$VERACITY_URL/v1/episodes/{CASE}"' in prompt
+    assert "phase" in prompt
+    assert "execute" in prompt
+    assert not CUES.search(prompt)
+
+
+def test_interface_bootstrap_keeps_source_material_distinct_from_actual_claim():
+    experiment = load_experiment(
+        ROOT / "harness/examples/discovery.toml", model_name="fixture/model"
+    )
+    guide = " ".join(static_documents(experiment)["interface.md"].split())
+    for route in ("identity", "episodes/<case_id>", "openapi.json"):
+        assert f'curl -fsS "$VERACITY_URL/v1/{route}"' in guide
+    assert "source material" in guide
+    assert "actual submitted claim" in guide
+    assert "phase" in guide
 
 
 def test_case_ids_read_as_network_references_with_other_cases_between():
