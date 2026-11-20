@@ -1,5 +1,13 @@
 # Agentic report review
 
+## 2026-11-20 restored bibliography size
+
+- Bibliography entries inherit the 11 pt body font. Verified the rendered
+  size on page 9 and checked the reflowed appendices on pages 10–17.
+- The main and clean builds produced identical 17-page renders with no
+  overflow or unresolved references. Fast verification passed. Logs and
+  renders are in `/tmp/collusion-references-normal.ZNlzpP/`.
+
 ## 2026-11-20 Veracity game citation
 
 - The Introduction cites Barbosa et al. as the source of the game adapted

@@ -12,7 +12,8 @@
     "typecheck": "astro check && tsc --noEmit",
     "lint": "eslint . --ext .js,.ts,.tsx,.astro",
     "test": "bun test",
-    "build": "astro build",
+    "build:report": "bash scripts/build-report.sh",
+    "build": "bun run build:report && astro build",
     "preview": "astro preview",
     "deploy": "wrangler deploy",
     "deploy:check": "wrangler deploy --dry-run"

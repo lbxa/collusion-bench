@@ -4,7 +4,6 @@
   "historical": { "path": "report/data/agentic-campaign.json", "sha256": "1aa2e353ae3ed47252d33d23df54b150dc340c300439807027edcac31c8a0699" },
   "swarm": { "path": "report/evidence/swarm-sprint/swarm-historical-summary.json", "sha256": "2489d4cafb5567d21fd7c5a878322a356dcf79c10d54dc97e3f811dfd2252462" },
   "papers": [
-    { "path": "report/agentic/build/main.pdf", "sha256": "cf90c5aebc5c497507a705e085ddc79be8337d2803e40a3d7f934fac5ff2e7bb", "file": "collusion-resistance-paper.pdf" },
     { "path": "report/agentic/build/historical/historical-october-main.pdf", "sha256": "8fb3c24fb9d64c917f7e5232586d7b52f863789d24aae2ad0bd78cf9487ebfd0", "file": "october-case-studies.pdf" }
   ]
 }

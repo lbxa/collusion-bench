@@ -1,21 +1,25 @@
 # Collusion Resistance research companion
 
-This top-level `website/` folder is a self-contained Bun/Astro project following
+This top-level `website/` folder is a Bun/Astro project following
 the approved Epistemics companion's light palette, ruled header, compact shadcn
 controls and centred resource links. Its data and author roster come from the
 collusion research project.
 
 ```sh
 bun install --frozen-lockfile
+bun run build:report
 bun run dev -- --port 4330
 ```
+
+Local report builds use `make` and a TeX Live or MacTeX installation with
+`latexmk`, `pdflatex` and the packages used by the manuscript. `bun run dev`
+starts Astro directly for site development.
 
 ## Evidence and updates
 
 `public/data/research.json` is the checked-in aggregate snapshot used by the page
-and offered as the JSON download. The two paper PDFs are checked in under
-`public/files/`. [Publication provenance](data-sources.json) records the original
-report inputs and paper hashes.
+and offered as the JSON download. [Publication provenance](data-sources.json)
+records the inputs and hashes for the aggregate data and the October case study PDF.
 
 The November readout includes five models, six conditions and a separate
 recovery cohort. Assigned outcomes include aborts and unresolved cases.
@@ -24,9 +28,10 @@ independent review. October keeps its original labels and assignments. The
 [swarm aggregate](../report/evidence/swarm-sprint/) records votes and settlements
 from the principles and scale campaigns under their original conditions.
 
-For a future publication, review the evidence in the report, then update the
-public files and their provenance directly. Publish only reviewed aggregates
-and approved paper PDFs. The report owns stratified means and uncertainty.
+Review changes to the current manuscript before merging them to `main`. Each
+production build compiles the manuscript from the deployed commit. Update the
+checked-in evidence snapshots and their provenance directly after review. The
+report owns stratified means and uncertainty.
 
 ## Boundaries and checks
 
@@ -35,8 +40,7 @@ hydrates the Base UI condition select. The Astro script switches between
 pre-rendered outcome panels while the coverage table remains visible. The
 historical figure reveals once on scroll and respects reduced motion. Static
 charts remain readable without JavaScript. No fonts, images or videos block the
-initial page render. Workers deployment serves the static build directly;
-no production domain is configured yet.
+initial page render. Workers serves the static build at `collusion.lbxa.net`.
 
 ```sh
 bun run lint
@@ -53,8 +57,12 @@ The first draft's checks and remaining gaps are recorded in [REVIEW.md](REVIEW.m
 ## Cloudflare Workers
 
 `wrangler.jsonc` names the Worker `collusion-bench` and serves `dist/` through
-Workers Static Assets. Wrangler runs `bun run build` before deploying the
-checked-in snapshots.
+Workers Static Assets. Wrangler runs `bun run build` before uploading assets.
+That command uses `make -C ../report agentic`, copies the resulting PDF to
+`public/files/collusion-resistance-paper.pdf`, and then builds Astro. A failed
+report build stops deployment. Compilation uses the checked-in paper sources,
+figures and tables from the same checkout.
+
 The custom `src/pages/404.astro` builds to `dist/404.html`; Workers serves it
 with a 404 status for missing paths, including nested URLs.
 
@@ -67,17 +75,22 @@ bun run deploy
 
 The first command validates and builds without uploading. The second publishes
 using Wrangler's authenticated account. Keep credentials in Wrangler's local
-authentication or CI secrets. No account ID, token or custom domain is stored
-in the config. The default endpoint uses `workers.dev`.
+authentication or CI secrets.
 
 For Cloudflare Git integration, select `lbxa/collusion-bench`, set the root
 directory to `website`, and use `bun run deploy` as the deploy command. Use
 `collusion-bench` as the Worker name. Install dependencies with
-`bun install --frozen-lockfile`. A fresh checkout contains all files needed to
-build and deploy the site.
+`bun install --frozen-lockfile`. The build installs a checksum-pinned TinyTeX
+2025.11 distribution and the manuscript packages from the frozen TeX Live 2025
+archive in a temporary directory. Keep the default repository-wide build watch
+paths or include `website/*` and `report/*` so paper-only commits trigger a
+deployment.
 
 ## Changelog
 
+- 2026-11-20: Compile the current paper during website deployment. The download
+  uses the same commit as the site and its PDF is generated at build time.
+  [Publication decision](../docs/decisions/build-the-current-paper-with-the-website.md).
 - 2026-11-19: Rename the current PDF to `collusion-resistance-paper.pdf` and
   redirect previously shared download links to it.
 - 2026-11-19: Keep one checked-in research snapshot for rendering and download.

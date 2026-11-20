@@ -7,3 +7,4 @@ output/
 .env*
 .wrangler/
 .DS_Store
+/public/files/collusion-resistance-paper.pdf

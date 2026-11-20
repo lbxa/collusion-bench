@@ -4,6 +4,7 @@
 
 Every record, newest first. See [README](./README.md) for when and how to write one.
 
+- [Build the current paper with the website](./build-the-current-paper-with-the-website.md) — 2026-11-20
 - [Bring swarm evidence into the Collusion benchmark](./bring-swarm-evidence-into-the-collusion-benchmark.md) — 2026-11-19
 - [Keep Stop hooks fast](./keep-stop-hooks-fast.md) — 2026-11-19
 - [Publish website research as checked-in snapshots](./publish-website-research-as-checked-in-snapshots.md) — 2026-11-19
