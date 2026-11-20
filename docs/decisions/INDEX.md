@@ -5,7 +5,9 @@
 Every record, newest first. See [README](./README.md) for when and how to write one.
 
 - [Bring swarm evidence into the Collusion benchmark](./bring-swarm-evidence-into-the-collusion-benchmark.md) — 2026-11-19
+- [Keep Stop hooks fast](./keep-stop-hooks-fast.md) — 2026-11-19
 - [Publish website research as checked-in snapshots](./publish-website-research-as-checked-in-snapshots.md) — 2026-11-19
+- [Run Docker acceptance in CI and explicit verification](./run-docker-acceptance-in-ci-and-explicit-verification.md) — 2026-11-19
 - [Use collusion-bench project defaults](./use-collusion-bench-project-defaults.md) — 2026-11-19
 - [Admit operational competence before resistance comparisons](./admit-operational-competence-before-resistance-comparisons.md) — 2026-11-17
 - [Anchor Collusion in evidence and detector comparison](./anchor-collusion-in-evidence-and-detector-comparison.md) — 2026-11-17

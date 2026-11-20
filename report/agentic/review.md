@@ -1,5 +1,132 @@
 # Agentic report review
 
+## 2026-11-20 Veracity game citation
+
+- The Introduction cites Barbosa et al. as the source of the game adapted
+  by the core engine. Checked the authors and title against the
+  [arXiv record](https://arxiv.org/abs/2507.09972) and the creator, challenger,
+  jury, and settlement mechanism against Sections 2 and 3 of the preprint.
+- The citation on page 1 links to the complete bibliography entry on page 9,
+  which links to arXiv. The main and clean LaTeX builds agree across all
+  16 rendered pages. Reviewed the changed pages and found no overflow or
+  unresolved references. Fast verification passed. Logs and renders are in
+  `/tmp/collusion-veracity-citation.svECIV/`.
+
+## 2026-11-20 bibliography typography
+
+- Bibliography entries use 10 pt. Confirmed the rendered font size and
+  checked the references on page 9 and the reflowed appendices on pages 10–16.
+- The main and clean LaTeX builds produced identical 16-page renders with
+  no overflow or unresolved references. Fast verification passed. Logs and
+  renders are in `/tmp/collusion-reference-font.WyV12d/`.
+
+## 2026-11-20 numbered model excerpts
+
+- The eight model-output panels carry numbered Excerpt captions. Each
+  caption identifies the source context and the observation shown. The
+  [shared panel environment](trace-panels.tex) keeps each caption with its
+  panel. References in Results and the appendices link to the panels.
+- The main and clean builds passed with
+  `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and the
+  equivalent latexmk flags. The checked toolchain was TeX Live 2025,
+  latexmk 4.86a, and caption 3.6o. The two 16-page builds have identical
+  extracted text and 120 dpi renders. The main build SHA-256 is
+  `965badaa85457eb1c31a05ede7fb7ac6e84cd6633e09e21b62207130a05c88c9`.
+- Verified all eight caption numbers and their PDF link destinations.
+  Inspected pages 3, 5–8, and 11–16 after reflow and compared the other
+  pages with the prior review copy. The build has no overflow or
+  unresolved references. Fast verification passed. Build logs and page
+  renders are in `/tmp/collusion-excerpts.cwlU2n/`.
+
+## 2026-11-20 two-column layout
+
+- The active paper uses two 11pt columns on US Letter with 0.8-inch margins
+  and a 0.27-inch gutter. The title, authors, and abstract sit above the
+  opening columns. Figures 1–3 and Tables 1–5 span the page. Excerpt headers
+  wrap within a column, and long provenance identifiers can break across lines.
+- `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and a clean build
+  with the same latexmk flags passed with TeX Live 2025 and latexmk 4.86a.
+  Both builds produced 16 pages with identical extracted text and 120 dpi
+  page renders. The main build SHA-256 is
+  `b0250c0681288ee6354ac989b2668a3cb15a688eeed64e938dd2219d3e3e0a42`.
+  Logs and page renders are in `/tmp/collusion-two-column.HiigSa/`.
+- Reviewed all pages for reading order, float placement, and clipping.
+  Checked Figure 1 on page 3 in grayscale and the wrapped excerpt header
+  on page 5 at print size. Fonts are embedded. The final TeX log has three
+  underfull prose lines and no overflow or unresolved references.
+  The local verification gate passed with 670 Python regressions.
+
+## 2026-11-20 illustrated juror workflow
+
+- Figure 1 on page 3 follows an illustrative juror prompt through inference,
+  Docker tool calls, Veracity settlement, and the records retained for analysis.
+  The [editable SVG](images/experiment-architecture.svg) uses the website
+  palette. The [figure PDF](images/experiment-architecture.pdf) is vector
+  artwork with embedded Iowan Old Style and Arial.
+- To re-export the figure, run from the repository root with those fonts
+  available. The checked export used Chrome 157.0.8103.79 on macOS.
+
+  ```sh
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    --headless --no-pdf-header-footer --user-data-dir="$(mktemp -d)" \
+    --print-to-pdf="$PWD/report/agentic/images/experiment-architecture.pdf" \
+    "file://$PWD/report/agentic/images/experiment-architecture.svg"
+  ```
+
+- `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and a clean build
+  with the same latexmk flags passed with TeX Live 2025 and latexmk 4.86a.
+  Both builds produce 22 pages with identical extracted text and 120 dpi
+  renders. The main build SHA-256 is
+  `211685c37e59a784839a87ab3499c1033ac27d90176d8221ab8fd2b9e4c789a5`.
+  Build logs and rendered checks are in `/tmp/collusion-infographic.3OthQI/`.
+- Inspected page 3 at the 6.5-inch text width in color and grayscale and
+  checked pages 4–12 after reflow. References now share page 12 with the
+  end of the main text and fit above the appendix break. The local
+  verification gate passed with 670 Python regressions.
+
+## 2026-11-19 experiment architecture figure
+
+- Figure 1 appears on page 3 at the start of Methodology. Its caption names
+  the inference provider, the Docker gateway, the settlement contract, and the
+  evidence sources for the five-model confirmation campaign. This build used
+  the earlier Mermaid figure.
+- `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and a clean build using
+  the same latexmk flags exited 0 with latexmk 4.86a and pdfTeX 1.40.27
+  (TeX Live 2025). The logs are in
+  `/tmp/collusion-architecture-review.NFQL7F/`. The 22-page `build/main.pdf`
+  has embedded fonts and no TeX warnings. Its SHA-256 is
+  `e589252768865988e755fe8d8d280ce7a93373ed7785b0b3acc612e45aa4a8f3`.
+- The two builds have identical extracted text and 120 dpi page renders.
+  Inspected the figure and caption at the 6.5-inch text width in color and
+  grayscale, plus the reflowed pages 4–11 and 15. The other pages match the
+  prior review copy pixel for pixel.
+
+## 2026-11-19 selected Swarm Alignment findings
+
+- Sections 3.5, 4.4, and 5.1 connect Figure 2 to the jury's one-vote shortfall
+  under adverse scripted peers, the offer relative to the ordinary reward,
+  and the false settlements with honest scripted peers. The six historical
+  configurations and an independent tally of the pinned case rows support
+  these claims. `python3 -I report/analysis/swarm_historical_summary.py --check`
+  passed. The figure uses the vector asset verified in the review below.
+- Claim S3a in the [paper brief](../../docs/reporting/paper-brief.md) adds a
+  single selected case. The [evidence packet](../evidence/swarm-sprint/README.md#selected-paid-false-verdict)
+  records the four verified source hashes and locators. The retained calls,
+  episode, transfers, and delivered charter support the described sequence.
+  Agreement and any violation of delivered duties remain subject to
+  independent review. The five-model swarm comparison remains prospective.
+- From `7f973b0166483431e5bfb475d0a7d7ef68a81cfc` with these report edits,
+  `SOURCE_DATE_EPOCH=1795111200 make -C report agentic` and a clean build with
+  the same latexmk flags from `report/agentic/` both exited 0 with latexmk
+  4.86a and TeX Live 2025. Logs are under
+  `/tmp/collusion-swarm-edit.duFImw/` (`canonical-build.log`, `clean-build.log`).
+  The 22-page `build/main.pdf` has embedded fonts and no TeX warnings.
+  Its SHA-256 is `47b7d478ed151c857be412f7b748e76b78136c5ab76c5634d2b8df4e46d87e0b`.
+- The canonical and clean builds have identical extracted text and identical
+  120 dpi renders on all 22 pages. Inspected pages 5, 6, 9, and 10 at report
+  size, including Figure 2, its caption, and the case footnote on page 9.
+  All other pages match the reviewed copy below pixel for pixel.
+
 ## 2026-11-19 historical peer comparison figure
 
 - Figure 2 on page 9 maps to S2a in the [paper
@@ -26,7 +153,7 @@
 
 ## 2026-11-19 swarm evidence integration
 
-- The working paper keeps the evidence rubric and planned detector comparison.
+- The paper keeps the evidence rubric and planned detector comparison.
   It adds the historical jury-network design in Section 3.5, descriptive
   counts in Section 4.4, and interpretation in Section 5.1. Claims S1–S4 in
   the [paper brief](../../docs/reporting/paper-brief.md) bind the historical
@@ -69,7 +196,7 @@ emergent roles, split-task refusal, network propagation, and threshold claims.
 
 ## 2026-11-19 publication cleanup
 
-- Rebuilt the working paper and October case studies with
+- Rebuilt the paper and October case studies with
   `make -C report agentic agentic-historical`. Both compiled without TeX
   warnings. The refreshed PDFs have 19 and 11 pages, respectively. The
   [website source manifest](../../website/data-sources.json) pins their hashes.
@@ -148,10 +275,10 @@ Remaining gaps: independent semantic/competence adjudication; scorer eligibility
 audit/corrections; stable infrastructure before further generation; broader
 source and feasible incentive-level coverage; held-out detector evaluation;
 author review and submission/disclosure compliance. Automated byte/mechanical
-checks do not close human semantic review. **Decision: updated empirical
-working report, not a validated resistance leaderboard or submission-ready
-benchmark.** No paid inference, journal/ledger mutation, public release or
-commit was performed by the report tooling.
+checks do not close human semantic review. **Decision: updated empirical paper.
+Benchmark validation and submission readiness remain open.** No paid inference,
+journal/ledger mutation, public release or commit was performed by the report
+tooling.
 
 ## Prior review: capability cohorts and selected GLM confirmation case
 

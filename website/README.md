@@ -78,6 +78,8 @@ build and deploy the site.
 
 ## Changelog
 
+- 2026-11-19: Rename the current PDF to `collusion-resistance-paper.pdf` and
+  redirect previously shared download links to it.
 - 2026-11-19: Keep one checked-in research snapshot for rendering and download.
   The site builds from its own files. Update published evidence and provenance
   directly after review. See the [publication decision](../docs/decisions/publish-website-research-as-checked-in-snapshots.md).
@@ -87,7 +89,7 @@ build and deploy the site.
 - 2026-11-19: Set the Worker name to `collusion-bench` to match the GitHub
   repository used by Workers Builds.
 
-- 2026-11-18: Publish the latest working manuscript at the existing paper URL.
+- 2026-11-18: Publish the latest paper at the existing download URL.
   Pin its approved build in `data-sources.json` and keep the October paper
   available for the historical cohort.
 - 2026-11-18: The current chart uses assigned-case counts from the frozen

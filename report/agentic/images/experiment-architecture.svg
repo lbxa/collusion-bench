@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="624" height="232" viewBox="0 0 936 348"
+     role="img" aria-labelledby="title description">
+  <title id="title">From juror prompt to run evidence</title>
+  <desc id="description">An illustrative juror prompt enters the agent harness.
+    The harness exchanges requests and replies with Cloudflare Workers AI.
+    Juror tools reach the Veracity API through a Docker gateway. A smart
+    contract handles settlement. Dashed arrows carry records from the
+    harness and Veracity to the run evidence used in analysis.</desc>
+  <style>
+    @page { size: 6.5in 2.4166667in; margin: 0; }
+    svg { print-color-adjust: exact; }
+    text {
+      fill: #193e32;
+      font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    }
+    .heading { font-size: 24px; font-weight: 700; }
+    .body { font-size: 21px; }
+    .small { font: 18px Arial, sans-serif; }
+    .cream { fill: #faf7ed; }
+    .muted { fill: #50584d; }
+    .icon {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .flow {
+      fill: none;
+      stroke: #24523f;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .record-flow {
+      stroke: #62665b;
+      stroke-width: 2;
+      stroke-dasharray: 4 5;
+    }
+  </style>
+  <defs>
+    <marker id="arrow" viewBox="0 0 9 9" markerWidth="9" markerHeight="9"
+            markerUnits="userSpaceOnUse" refX="8" refY="4.5" orient="auto-start-reverse">
+      <path d="M0 0 9 4.5 0 9Z" fill="#24523f"/>
+    </marker>
+    <marker id="record-arrow" viewBox="0 0 9 9" markerWidth="9" markerHeight="9"
+            markerUnits="userSpaceOnUse" refX="8" refY="4.5" orient="auto">
+      <path d="M0 0 9 4.5 0 9Z" fill="#62665b"/>
+    </marker>
+    <symbol id="message" viewBox="0 0 24 24">
+      <path class="icon" d="M3 4h18v12H10l-5 4v-4H3zM7 9h10m-10 3h7"/>
+    </symbol>
+    <symbol id="vote" viewBox="0 0 24 24">
+      <path class="icon" d="M5 2h11l3 3v17H5zM15 2v4h4M8 13l3 3 5-6"/>
+    </symbol>
+    <symbol id="case-note" viewBox="0 0 24 24">
+      <path class="icon" d="M5 2h11l3 3v17H5zM15 2v4h4M8 10h8m-8 4h8m-8 4h5"/>
+    </symbol>
+    <symbol id="payout" viewBox="0 0 24 24">
+      <ellipse class="icon" cx="12" cy="6" rx="8" ry="3"/>
+      <path class="icon" d="M4 6v11c0 4 16 4 16 0V6M4 11c0 4 16 4 16 0"/>
+    </symbol>
+  </defs>
+
+  <!-- System exchanges and retained records -->
+  <g class="flow" marker-end="url(#arrow)">
+    <path d="M228 169H278"/>
+    <path d="M393 92V58"/>
+    <path d="M419 58V92"/>
+    <path d="M560 156H671" marker-start="url(#arrow)"/>
+    <path d="M802 176v20"/>
+    <path d="M785 310h36"/>
+  </g>
+  <g class="flow record-flow" marker-end="url(#record-arrow)">
+    <path d="M420 242v41"/>
+    <path d="M759 242v41"/>
+  </g>
+
+  <!-- A paper prompt card leads into the harness -->
+  <rect x="16" y="101" width="211" height="140" rx="10" fill="#eee9dc" stroke="#b8b8ac"/>
+  <path d="M15 89h178l26 26v109a10 10 0 0 1-10 10H15a10 10 0 0 1-10-10V99a10 10 0 0 1 10-10Z"
+        fill="#fafaf9" stroke="#a4a89b" stroke-width="1.5"/>
+  <path d="M193 89v26h26" fill="#eee9dc" stroke="#a4a89b" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="22" y="127" class="heading">Juror prompt</text>
+  <text x="22" y="160" class="body" font-style="italic">“Which verdict does</text>
+  <text x="22" y="184" class="body" font-style="italic">the evidence support?”</text>
+  <text x="22" y="213" class="small muted">Case evidence + rules</text>
+
+  <!-- Inference stays outside the local harness -->
+  <rect x="290" y="5" width="270" height="52" rx="10" fill="#efefea" stroke="#a4a89b" stroke-width="1.5"/>
+  <path class="icon" color="#24523f"
+        d="M315 41h20a7 7 0 0 0 0-14 10 10 0 0 0-19-3 8.5 8.5 0 0 0-1 17Z"/>
+  <text x="346" y="38" font-size="19" font-weight="700">Cloudflare Workers AI</text>
+  <text x="433" y="80" class="small muted">Inference</text>
+
+  <rect x="278" y="92" width="282" height="150" rx="13" fill="#193e32"/>
+  <text x="297" y="127" class="heading cream">Agent harness</text>
+  <rect x="294" y="142" width="250" height="84" rx="8" fill="#faf7ed"/>
+  <use href="#case-note" x="347" y="153" width="26" height="26" color="#24523f"/>
+  <g class="icon" color="#24523f">
+    <rect x="467" y="154" width="32" height="22" rx="4"/>
+    <path d="m474 160 4 4-4 4m8 0h9"/>
+  </g>
+  <path class="flow" d="M394 166h51" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <text x="360" y="206" class="small" text-anchor="middle">Read evidence</text>
+  <text x="483" y="206" class="small" text-anchor="middle">Use tools</text>
+
+  <text x="615" y="121" class="small" text-anchor="middle">Docker</text>
+  <text x="615" y="142" class="small" text-anchor="middle">gateway</text>
+
+  <!-- The API and contract have distinct roles -->
+  <rect x="671" y="110" width="258" height="66" rx="10" fill="#fafaf9" stroke="#a4a89b" stroke-width="1.5"/>
+  <use href="#message" x="690" y="128" width="32" height="32" color="#24523f"/>
+  <text x="734" y="152" class="heading">Veracity API</text>
+  <rect x="671" y="196" width="258" height="46" rx="10" fill="#eee9dc" stroke="#a4a89b" stroke-width="1.5"/>
+  <use href="#payout" x="694" y="207" width="24" height="24" color="#24523f"/>
+  <text x="734" y="226" class="body" font-weight="700">Smart contract</text>
+
+  <!-- Concrete records make the evidence path visible -->
+  <rect x="278" y="283" width="507" height="55" rx="10" fill="#efefea" stroke="#a4a89b" stroke-width="1.5"/>
+  <text x="294" y="317" class="body" font-weight="700">Run evidence</text>
+  <path d="M440 295v31" stroke="#a4a89b" stroke-width="1.5"/>
+  <use href="#message" x="450" y="299" width="22" height="22" color="#24523f"/>
+  <text x="479" y="317" class="small">Messages</text>
+  <use href="#vote" x="580" y="299" width="22" height="22" color="#24523f"/>
+  <text x="608" y="317" class="small">Votes</text>
+  <use href="#payout" x="672" y="299" width="22" height="22" color="#24523f"/>
+  <text x="700" y="317" class="small">Payouts</text>
+  <text x="831" y="317" class="heading">Analysis</text>
+</svg>

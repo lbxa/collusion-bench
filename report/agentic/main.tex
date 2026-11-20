@@ -1,6 +1,6 @@
 % !TEX TS-program = pdflatexmk
 % !TEX encoding = UTF-8 Unicode
-\documentclass[11pt,letterpaper]{article}
+\documentclass[11pt,letterpaper,twocolumn]{article}
 \input{preamble}
 
 \title{Collusion Resistance: From Agreements to Actions}
@@ -8,28 +8,30 @@
 \date{}
 
 \begin{document}
+\twocolumn[{
 \begin{center}
   \hrule height 3pt
-  \vspace{18pt}
+  \vspace{12pt}
   {\fontsize{20}{24}\selectfont\bfseries
     Collusion Resistance:\\From Agreements to Actions\par}
-  \vspace{18pt}
+  \vspace{12pt}
   \hrule height 1pt
-  \vspace{18pt}
+  \vspace{12pt}
   \begin{tabular}{ccc}
     Lucas Barbosa\textsuperscript{1} & Stefan Gazzana\textsuperscript{2} & Sravika Linga\textsuperscript{1}\\[6pt]
     \multicolumn{3}{c}{Muskaan Kumar\textsuperscript{1}\quad Jake Fogel\textsuperscript{1}}\\[6pt]
     \multicolumn{3}{c}{\small\textsuperscript{1}New York University\quad\textsuperscript{2}Roundarc}
   \end{tabular}\par
-  \vspace{18pt}
+  \vspace{12pt}
 
   {\fontsize{14}{18}\selectfont\bfseries Abstract\par}
   \vspace{10pt}
-  \begin{minipage}{0.7\textwidth}
+  \begin{minipage}{0.88\textwidth}
     \input{sections/resistance-abstract}
   \end{minipage}
 \end{center}
-\clearpage
+\vspace{10pt}
+}]
 
 \input{sections/resistance-introduction}
 \input{sections/resistance-methods}
@@ -37,13 +39,9 @@
 \input{sections/resistance-discussion}
 \input{sections/resistance-references}
 
-\clearpage
 \appendix
 \input{sections/resistance-limitations}
-\clearpage
 \input{sections/resistance-collection-detail}
-\clearpage
 \input{sections/resistance-capability-detail}
-\clearpage
 \input{sections/resistance-evidence}
 \end{document}

@@ -284,14 +284,30 @@ bash scripts/verify.sh
 
 The full gate covers hooks, Foundry, Rust, Python, and real Docker → HTTP → Anvil
 acceptance checks. Focused Python work uses `bash scripts/verify-harness.sh` after
-the engine is built. Model APIs, funded public wallets, and public RPC are not
-needed. Integration fixtures establish mechanics and evidence retention, not
-spontaneous model behavior. Do not silently skip Docker or chain checks.
+the engine is built. The full gate runs one integration case at a time. The
+automatic Stop check runs shell fixtures and the decision-index check. Run
+`bash scripts/verify.sh --no-docker` for local Python regressions and Rust/Anvil
+checks. Linux CI runs the full gate. Model APIs, funded public wallets, and
+public RPC are not needed. Integration fixtures establish mechanics and
+evidence retention, not spontaneous model behavior. Do not silently skip Docker
+or chain checks.
+
+For a cleanup failure logged as `reason=active_endpoints`, inspect the network
+ID from the log. If Docker reports active endpoints on that network while
+inspection lists no containers and forced detach reports the endpoint missing,
+the daemon can be holding a stale cache entry. Restart Docker Desktop after
+active work finishes, then remove the affected test network by ID. Network
+inspection can trigger the race on affected releases, and the Docker Desktop
+frontend can continue polling with its window closed. If Docker reports exhausted
+address pools, check for old harness networks unreferenced by any running or
+stopped container before removing them. See [the upstream Moby fix](https://github.com/moby/moby/pull/54186).
 
 ## Changelog
 
 ### 2026-11-19
 
+- Log the Docker resource ID and classify active-endpoint removal failures so
+  operators can diagnose stale daemon state and recover the affected test network.
 - Detach owned participant and gateway endpoints before deleting arena
   containers so Docker can resolve the attachments during cleanup.
 - Keep injected test models outside paid-request accounting so campaign

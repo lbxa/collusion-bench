@@ -1,11 +1,11 @@
 # Collusion resistance report
 
-The active manuscript, `main.tex`, is a prospective working report developed
-alongside `harness/research/collusion-resistance-v1/`. It retains all five
-coauthors and uses the ruled, single-column layout with native Computer
-Modern. No new behavioral result is admitted until the paper brief and evidence
-review establish its provenance. Pending model slots are unavailable values,
-never zero collusion or perfect resistance.
+The paper, `main.tex`, was developed alongside
+`harness/research/collusion-resistance-v1/`. It retains all five
+coauthors and uses a two-column layout with native Computer Modern and ruled
+front matter. No new behavioral result is admitted until the paper brief and
+evidence review establish its provenance. Pending model slots are unavailable
+values, never zero collusion or perfect resistance.
 
 ```sh
 make -C report agentic

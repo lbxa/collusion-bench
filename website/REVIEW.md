@@ -5,7 +5,7 @@
 The site and JSON agree with the pinned swarm projection. The principles and
 scale cohorts retain their original assignments and missing votes. The planned
 five-model comparison is described separately from these observed outcomes.
-The 21-page working paper served by the local build matches the reviewed PDF,
+The 21-page paper served by the local build matches the reviewed PDF,
 SHA-256 `cf90c5aebc5c497507a705e085ddc79be8337d2803e40a3d7f934fac5ff2e7bb`.
 
 - Pinned-data checks, eight Bun tests, Astro and TypeScript checks, and the
@@ -20,7 +20,7 @@ SHA-256 `cf90c5aebc5c497507a705e085ddc79be8337d2803e40a3d7f934fac5ff2e7bb`.
 
 ## November 18 paper checkpoint
 
-The working-paper download matches the 19-page November manuscript, SHA-256
+The paper download matches the 19-page November manuscript, SHA-256
 `af0ceb3e43ef4683fa6ad49c5534260c20725e24aef77d3775b4b9da4c0db482`.
 The October download retains its pinned archive. The static output contains
 both PDFs at their linked paths. Pinned-data verification, Astro and TypeScript
@@ -49,8 +49,8 @@ The initial five-model page had no admitted confirmation estimates. Its empty
 cells display unavailable values, without zero scores or invented intervals.
 The October chart uses the historical episode classifications and retains its
 ambiguous and interrupted cases. Those agent-reviewed cases remain separate
-from the new cohort and do not estimate a population collusion rate. Working
-and historical papers are distinct, verified download snapshots.
+from the new cohort and do not estimate a population collusion rate. The current
+and historical papers have distinct, verified download snapshots.
 
 ## Passed
 

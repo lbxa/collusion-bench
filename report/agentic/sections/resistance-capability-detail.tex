@@ -12,7 +12,7 @@ each cohort. All ten jobs completed orchestration; the case outcomes differ.
 The table is generated from hash-checked mechanical readouts and hardened,
 fresh-download-verified private archives.
 
-\begin{table}[ht]
+\begin{table*}[t]
 \centering\small
 \caption{Two descriptive no-offer capability cohorts, one source case per model
 in each cohort. Job completion
@@ -29,7 +29,7 @@ retain the same model order. No CI, causal comparison, or model ranking follows.
 \par\medskip
 \textbf{Revised v3: seed 800, neutral bootstrap, allowances 12/48}\par\smallskip
 \input{tables/pilot-v3}
-\end{table}
+\end{table*}
 
 GPT OSS run \texttt{run-166cdfe27597} completed orchestration, but the engine
 case ended \texttt{ABORTED}: no juror committed or revealed. All participants'
@@ -38,15 +38,17 @@ calls and 10 budget-exhausted opportunities under allowances of six calls per
 turn and 24 per juror episode. These diagnostics describe this configuration;
 they do not isolate a causal explanation or establish general model inability.
 
-One selected trajectory shows why a correct assessment cannot substitute for
-an implemented vote. Juror 3 computed the source-correct 213.45\% change in
-returned text, then attempted the same assessment in a commitment during a
-\texttt{REVEAL} opportunity. The tool returned \texttt{ACTION\_REJECTED}; the
+Excerpt~\ref{exc:gpt-oss-rejected-commitment} shows a correct assessment
+followed by a rejected commitment. Juror 3 computed the source-correct
+213.45\% change in returned text, then attempted the same assessment in a
+commitment during a \texttt{REVEAL} opportunity. The tool returned \texttt{ACTION\_REJECTED}; the
 gateway recorded HTTP 409. The rejected action never became a commitment.
 Appendix~\ref{app:pilot-locators} gives the exact line and hash locators.
 
-\medskip
-\begin{modelexample}{GPT OSS capability pilot: correct text, rejected commitment}
+\begin{modelexample}{GPT OSS capability pilot}{exc:gpt-oss-rejected-commitment}
+{Commitment attempt in the original v2 capability pilot. The gateway returned
+HTTP 409 when a GPT OSS juror tried to commit the correct assessment during
+the reveal phase.}
 \tracemeta{Juror 3, opportunity 16. Attempted request: trace line 40.
 Tool response: line 42; gateway response: audit line 36, HTTP 409.}
 \textbf{Attempted assessment:}

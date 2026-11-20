@@ -1,15 +1,28 @@
-% Shared monochrome prompt/response panels. Inherit the manuscript's typography.
+% Attributed model excerpts with captions that stay with their panels.
 \usepackage{xcolor}
-\usepackage[breakable,skins]{tcolorbox}
-\newtcolorbox{modelexample}[2][]{enhanced,breakable,
-  colback=white,colframe=black,coltext=black,boxrule=0.65pt,arc=1.2mm,
-  fontupper=\small,left=11pt,right=11pt,top=10pt,bottom=9pt,
-  before skip=20pt,after skip=7pt,
-  title={#2},title after break={#2\ (continued)},
-  fonttitle=\normalfont\small,coltitle=white,colbacktitle=black,
-  attach boxed title to top left={xshift=9pt,yshift=-\tcboxedtitleheight/2},
-  boxed title style={boxrule=0pt,arc=0.6mm,boxsep=0pt,
-    left=5pt,right=5pt,top=1.5pt,bottom=1.5pt},
-  segmentation style={draw=black!40,dashed,line width=0.35pt},#1}
+\usepackage[skins]{tcolorbox}
+\usepackage{caption}
+\DeclareCaptionType[name=Excerpt]{excerpt}
+\captionsetup[excerpt]{font=small,justification=raggedright,singlelinecheck=false,
+  position=bottom,skip=5pt}
+
+% \begin{modelexample}{title}{label}{caption}
+\NewDocumentEnvironment{modelexample}{mmm}
+  {\par\addvspace{9pt}\noindent
+   \begin{minipage}{\linewidth}
+   \captionsetup{type=excerpt}
+   \begin{tcolorbox}[enhanced,
+     colback=white,colframe=black,coltext=black,boxrule=0.65pt,arc=1.2mm,
+     fontupper=\small\raggedright,fontlower=\small\raggedright,
+     left=8pt,right=8pt,top=7pt,bottom=6pt,
+     before skip=0pt,after skip=0pt,
+     title={#1},
+     fonttitle=\normalfont\small\bfseries\raggedright,coltitle=white,colbacktitle=black,
+     toptitle=3pt,bottomtitle=3pt,
+     segmentation style={draw=black!40,dashed,line width=0.35pt}]}
+  {\end{tcolorbox}
+   \caption{#3}\label{#2}
+   \end{minipage}\par\addvspace{7pt}}
+
 \newcommand{\tracemeta}[1]{\par\noindent{\footnotesize #1}\par\medskip}
 \newcommand{\traceomission}{\par\smallskip\noindent[\ldots]\par\smallskip}

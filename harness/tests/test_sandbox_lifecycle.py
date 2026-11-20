@@ -1,5 +1,6 @@
 import asyncio
 from threading import Barrier, Event
+from types import SimpleNamespace
 from unittest.mock import MagicMock, call
 
 import pytest
@@ -154,6 +155,25 @@ def test_cleanup_attempts_remaining_resources_after_removal_failure(monkeypatch,
     volume.remove.assert_called_once_with(force=True)
     client.close.assert_called_once_with()
     assert not arena.staging.exists()
+
+
+def test_cleanup_reports_docker_active_endpoint_failure(monkeypatch, caplog):
+    client = MagicMock()
+    client.api._proxy_configs = {}
+    monkeypatch.setattr("veracity_harness.sandbox.docker.from_env", lambda **kwargs: client)
+    arena = DockerArena("active-endpoint-fixture")
+    network = MagicMock(id="fixture-network-id")
+    network.remove.side_effect = APIError(
+        "Forbidden",
+        response=SimpleNamespace(status_code=403),
+        explanation='network fixture has active endpoints (name:"peer")',
+    )
+    arena.networks.append((network, []))
+
+    with pytest.raises(RuntimeError, match="1 resources"):
+        arena.close()
+
+    assert "kind=network id=fixture-network-id status=403 reason=active_endpoints" in caplog.text
 
 
 def test_container_is_owned_before_start_can_fail(monkeypatch, tmp_path):

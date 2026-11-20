@@ -1,18 +1,20 @@
 # Venue and submission record
 
-The [agentic manuscript](../../report/agentic/main.tex) is a research working
-paper. No submission venue has been selected for the current revision.
+No submission venue has been selected for the current revision of the
+[paper](../../report/agentic/main.tex).
 
 ## Current report layouts
 
-### Active prospective report, updated 2026-11-17
+### Active prospective report, updated 2026-11-20
 
-The active report uses US Letter, one-inch margins, one column, 11pt native
-Computer Modern text and mathematics, approximately 15.7pt body leading, a
-centered ruled 20pt title, a narrow abstract, and 14pt main headings.
-Black-outline panels identify attributed excerpts. The title lists all five
-coauthors in their supplied order with their confirmed affiliations. References
-precede the limitations and ethics appendix and the detailed evidence appendices.
+The active report uses US Letter with 0.8-inch margins and a 0.27-inch
+column gutter. The two columns use 11pt native Computer Modern text and
+mathematics with approximately 14pt body leading. The ruled 20pt title and
+abstract sit above both columns on the first page. Wide figures and tables
+span both columns, and black-outline panels identify attributed excerpts.
+The title lists all five coauthors in their supplied order with their
+confirmed affiliations. References precede the limitations and ethics
+appendix and the detailed evidence appendices.
 
 ### Historical layouts
 
@@ -49,7 +51,7 @@ and the date checked beside each external rule.
 
 | Field | Project value |
 | --- | --- |
-| Venue, year, track, and paper type | Working paper; venue pending |
+| Venue, year, track, and paper type | Research paper, venue pending |
 | Document stage | Working draft |
 | Official author guide, policies, and template | Pending venue selection |
 | Local report root and main `.tex` file | `report/agentic/main.tex` |

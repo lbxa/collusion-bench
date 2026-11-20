@@ -10,7 +10,7 @@ case "$1:${5:-}:${6:-}" in
   run:pytest:harness/tests)
     case "$*" in
       *'-m not integration'*) stage=unit ;;
-      *'-m integration'*) stage=integration ;;
+      *'-m integration -n 0') stage=integration ;;
       *) exit 1 ;;
     esac
     ;;

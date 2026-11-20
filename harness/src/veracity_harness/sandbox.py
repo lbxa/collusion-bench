@@ -350,11 +350,18 @@ class DockerArena:
             except NotFound:
                 pass
             except APIError as error:
+                active_endpoints = (
+                    kind == "network"
+                    and error.status_code == 403
+                    and "has active endpoints" in str(error.explanation)
+                )
                 LOG.warning(
-                    "Docker resource removal failed run=%s kind=%s status=%s",
+                    "Docker resource removal failed run=%s kind=%s id=%s status=%s reason=%s",
                     self.run_id,
                     kind,
+                    resource.id,
                     error.status_code,
+                    "active_endpoints" if active_endpoints else "api_error",
                 )
                 return kind
             return None

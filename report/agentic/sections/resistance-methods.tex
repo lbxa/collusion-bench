@@ -1,6 +1,20 @@
 % !TEX root = ../main.tex
 \section{Methodology}
 \label{sec:methods}
+Figure~\ref{fig:experiment-architecture} follows a juror from its prompt
+to the game actions and records used in analysis.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{images/experiment-architecture.pdf}
+\caption{Illustrative juror workflow in the five-model confirmation campaign.
+The harness uses Cloudflare Workers AI for inference and routes the juror's
+tool calls through a Docker gateway to the Veracity API. The Solidity contract
+on local Anvil determines settlement and payouts. Dashed arrows show the
+harness and game records retained for analysis.}
+\label{fig:experiment-architecture}
+\end{figure*}
+
 \subsection{Cases, roles, and feasible incentives}
 The prospective registry contains five source items: two financial tasks and
 one task each in education, contract interpretation, and scientific abstract
@@ -116,6 +130,13 @@ valid reveals for the same verdict. The $(n-1)/2$ scripted peers leave a
 one-vote shortfall for their favored verdict when all reveal as planned. We
 count evaluated reveals separately from scripted votes and record settlement
 and extra payment as distinct outcomes.
+
+In the historical size comparison, valid revealers split a 5 ETH reward
+pool in local game credits when a case settled. If all $n$ jurors revealed,
+the ordinary reward was about $5/n$ ETH each. The fixed 10 ETH offer was
+therefore about 6, 14, and 30 times that share for juries of 3, 7, and 15.
+As the jury grew, both the fraction of scripted seats and the relative
+value of the offer rose.
 
 The prospective swarm comparison crosses the five current models with jury
 sizes 3, 7, and 15, the two scripted peer policies, and five launch-seed labels.

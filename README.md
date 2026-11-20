@@ -82,7 +82,7 @@ paper brief, writing standards, figures and tables, LaTeX conventions, venue
 requirements, review checks, source notes, and reusable examples. Agents should
 follow the reading order in [AGENTS.md](AGENTS.md#research-reports) before writing.
 The [report guide](report/README.md) describes the older baseline manuscript,
-built with `make -C report`. The [active working paper](report/agentic/main.tex)
+built with `make -C report`. The [paper](report/agentic/main.tex)
 builds with `make -C report agentic`. The [archived October manuscript](report/agentic/historical-october-main.tex)
 builds with `make -C report agentic-historical`. The
 [paper brief](docs/reporting/paper-brief.md) maps the active paper's claims to
@@ -234,10 +234,14 @@ Context7 runs as a standalone JavaScript documentation helper through `npx`;
 Node.js is needed only for that helper, not for Rust builds or verification.
 
 Both Stop hooks invoke `scripts/agent-hooks/stop-checks.sh`, which saves each
-verification run under `.harness/verification/`. On failure it requests one
-repair continuation. If verification still fails, it displays a warning and
-permits a handoff that must disclose the failure. Direct verification always
-returns a failing exit status when a check fails.
+verification run under `.harness/verification/`. The hooks call
+`bash scripts/verify-fast.sh` with a 30-second cap for shell fixtures and the
+decision index. Run `bash scripts/verify.sh --no-docker` for explicit Foundry,
+Rust/Anvil, and Python checks. CI and `bash scripts/verify.sh` also run all Docker
+acceptance cases one at a time. Run the full gate when changing Docker
+lifecycle, isolation, or harness-to-engine integration. On failure a Stop hook
+requests one repair continuation. If verification still fails, it displays a
+warning and permits a handoff that must disclose the failure.
 Hook payloads follow the [Codex](https://learn.chatgpt.com/docs/hooks) and
 [Claude Code](https://code.claude.com/docs/en/hooks) event contracts.
 
@@ -250,6 +254,9 @@ rolls back only worktrees and branches created by that invocation.
 
 ### 2026-11-19
 
+- Cap automatic Stop checks at 30 seconds and give them a standalone shell
+  fixture and decision-index gate. CI and explicit verification run Docker
+  integration cases serially.
 - Incorporate the independent Apart swarm evidence and run configurations as
   a peer-recruitment study under the Collusion research contract. The
   prospective five-model comparison uses a separate campaign frame.

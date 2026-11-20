@@ -25,7 +25,9 @@ source hashes, ABI versions, and original duty text.
 
 - `bash scripts/setup.sh`: install pinned local Foundry, build contracts, and fetch locked dependencies.
 - `cargo run -p veracity-game-service -- --local`: start the API with isolated Anvil.
-- `bash scripts/verify.sh`: run hooks, Solidity/Rust tests, artifact checks, formatting, Clippy, and builds.
+- `bash scripts/verify-fast.sh`: run the Stop-hook shell fixtures and decision-index check.
+- `bash scripts/verify.sh`: run the full gate, including Docker acceptance tests one at a time. CI uses this command.
+- `bash scripts/verify.sh --no-docker`: run explicit local verification with Foundry, real Rust/Anvil tests, and Python regressions.
 - `cargo build --workspace --locked`: build workspace packages.
 - `cargo test --workspace --locked`: run unit, integration, and documentation tests.
 - `cargo test -p veracity-game-service`: test the service during iteration.

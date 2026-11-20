@@ -16,6 +16,11 @@ export GATE_CALLS="$fixture/gate-calls"
 bash "$fixture/repo with spaces/scripts/verify-harness.sh"
 [ "$(cat "$GATE_CALLS")" = "$(printf '%s\n' docker sync client lint format unit integration)" ]
 
+: > "$GATE_CALLS"
+GATE_FAIL=docker bash "$fixture/repo with spaces/scripts/verify-harness.sh" --no-docker >"$fixture/output"
+[ "$(cat "$GATE_CALLS")" = "$(printf '%s\n' sync client lint format unit)" ]
+grep -Fq 'Docker integration was deferred.' "$fixture/output"
+
 for failure in docker sync client lint format unit integration; do
   : > "$GATE_CALLS"
   if GATE_FAIL="$failure" bash "$fixture/repo with spaces/scripts/verify-harness.sh" >"$fixture/output" 2>&1; then

@@ -4,6 +4,14 @@ Run `bash scripts/setup.sh` once, then `bash scripts/verify.sh`. Verification
 must run actual local Anvil nodes; a missing tool or denied loopback listener is
 a failing check, never a reason to silently skip integration tests.
 
+| Entry point | Scope |
+| --- | --- |
+| `bash scripts/verify-fast.sh` | Shell fixtures and the decision-index check. Both Stop hooks use this path with a 30-second cap. |
+| `bash scripts/verify.sh --no-docker` | Fast checks, Foundry, Rust with real Anvil, and Python regressions. Run on demand. |
+| `bash scripts/verify.sh` | Full verification with all Python Docker acceptance cases run serially. CI uses this path. |
+
+Run full verification for changes to Docker lifecycle, isolation, or integration.
+
 ## Protocol rules
 
 `contracts/test/Veracity.t.sol` exercises SPEC sections 7–9:
@@ -55,8 +63,7 @@ failing regression test before the corresponding behavioral fix.
 
 ## Interpretation and limits
 
-The gate also runs `harness/tests/` through Python's unittest runner and the
-imported `harness/test_harness.py` suite. Actual subprocess acceptance tests
+The gate runs `harness/tests/` with pytest. Actual subprocess acceptance tests
 cover local startup/cleanup, HTTP actions, exact economics, commit/reveal,
 withholding versus absence, expiry, and engine evidence in experiment records.
 Use `bash scripts/verify-harness.sh` after building Rust for focused integration
